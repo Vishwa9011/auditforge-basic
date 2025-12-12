@@ -1,68 +1,44 @@
 import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarRail,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  SidebarMenuAction,
-} from "@/components/animate-ui/components/radix/sidebar";
-import React from "react";
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import type { ReactNode } from 'react';
+import { navLinks } from '@/constants';
 
-const SidebarLayout = () => {
-  return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>Item 1</SidebarMenuItem>
-            <SidebarMenuItem>Item 2</SidebarMenuItem>
-            <SidebarMenuItem>Item 3</SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Label 1</SidebarGroupLabel>
-            <SidebarMenu>
-              <SidebarMenuItem>Item 1</SidebarMenuItem>
-              <SidebarMenuItem>Item 2</SidebarMenuItem>
-              <SidebarMenuItem>Item 3</SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Label 2</SidebarGroupLabel>
-            <SidebarMenu>
-              <SidebarMenuItem>Item 1</SidebarMenuItem>
-              <SidebarMenuItem>Item 2</SidebarMenuItem>
-              <SidebarMenuItem>Item 3</SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>Item 1</SidebarMenuItem>
-            <SidebarMenuItem>Item 2</SidebarMenuItem>
-            <SidebarMenuItem>Item 3</SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-        <SidebarRail />
-      </Sidebar>
-      <SidebarInset>
-        <SidebarTrigger />
-        Hello I am the main content area!
-      </SidebarInset>
-    </SidebarProvider>
-  );
+const SidebarLayout = ({ children }: { children: ReactNode }) => {
+    return (
+        <SidebarProvider defaultOpen={false}>
+            <Sidebar collapsible="icon">
+                <SidebarContent>
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Application</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {navLinks.map(item => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <a href={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                </SidebarContent>
+            </Sidebar>
+            {children}
+        </SidebarProvider>
+    );
 };
 
 export default SidebarLayout;
