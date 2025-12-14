@@ -1,12 +1,7 @@
 import type { Brand } from '@/types';
 import type { META_KEY } from '../store/file-system.store';
 
-// Create a unique symbol that represents the "Ino" brand
-// unique symbol guarantees no other brand can match it
-declare const InoBrand: unique symbol;
-
-// Ino is a number, but NOT just any number
-// It must carry the InoBrand label
+export declare const InoBrand: unique symbol;
 export type Ino = Brand<number, typeof InoBrand>;
 
 export type InodeMeta = {
@@ -27,3 +22,8 @@ export type DbScehma = {
 };
 
 export type ResolveResult = { kind: 'found'; node: FsNode; meta: InodeMeta } | { kind: 'missing'; at: string };
+
+export type FileNode = {
+    id: string;
+    content: string;
+};

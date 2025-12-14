@@ -1,6 +1,7 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import type { FsNode, Ino, InodeMeta } from '../types';
-import { META_KEY } from '../store/file-system.store';
+import { META_KEY } from '../store/file-system/constants';
+import { coerceInodeMeta } from '../store/file-system/inode-meta';
 
 export const DB_NAME = 'AuditForgeFileSystem';
 export const FILE_STORE = 'AuditForgeSystem_files';
@@ -82,25 +83,6 @@ export function makeDirNode(ino: Ino) {
         mtimeMs: Date.now(),
         size: 0,
     } as InodeMeta;
-}
-
-/** Utility: strongly typed meta getter */
-function isInodeMetaLike(value: unknown): value is InodeMeta {
-    if (!value || typeof value !== 'object') return false;
-    const v = value as any;
-    return typeof v.ino === 'number' && (v.type === 'file' || v.type === 'dir');
-}
-
-function coerceInodeMeta(value: unknown): InodeMeta | null {
-    if (!isInodeMetaLike(value)) return null;
-    const v = value as any;
-    return {
-        ino: v.ino as Ino,
-        type: v.type,
-        mode: typeof v.mode === 'number' ? v.mode : 511,
-        mtimeMs: typeof v.mtimeMs === 'number' ? v.mtimeMs : Date.now(),
-        size: typeof v.size === 'number' ? v.size : 0,
-    };
 }
 
 /** Utility: strongly typed meta getter (supports legacy shapes) */

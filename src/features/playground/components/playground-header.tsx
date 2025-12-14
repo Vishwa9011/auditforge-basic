@@ -7,15 +7,15 @@ import { resolveFilename, resolvePath, useFileSystem } from '../store';
 export function PlaygroundHeader() {
     const openFiles = useFileSystem(state => state.openFiles);
     const activeFile = useFileSystem(state => state.activeFile);
-    const closeFile = useFileSystem(state => state.closeOpenFile);
+    const closeFile = useFileSystem(state => state.closeFile);
 
-    const openFilesNode = useMemo(() => {
+    const openFileTabs = useMemo(() => {
         return Array.from(openFiles)
             .map(filePath => {
-                const parent = resolvePath(filePath);
-                if (parent.kind == 'found') {
+                const resolved = resolvePath(filePath);
+                if (resolved.kind == 'found') {
                     return {
-                        ...parent.meta,
+                        ...resolved.meta,
                         path: filePath,
                         name: resolveFilename(filePath) || 'untitled',
                     };
@@ -52,7 +52,7 @@ export function PlaygroundHeader() {
             <div className="flex h-8 items-center overflow-hidden border-b">
                 <div className="h-full min-w-0 flex-1">
                     <div className="scroll-thin flex h-full items-center overflow-x-auto overflow-y-hidden ">
-                        {openFilesNode.map(file => (
+                        {openFileTabs.map(file => (
                             <div
                                 key={file.path}
                                 className={cn(

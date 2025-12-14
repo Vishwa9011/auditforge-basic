@@ -9,13 +9,13 @@ export function FileExplorer() {
             </div>
 
             <div className="scroll-thin min-h-0 flex-1 px-1 py-1">
-                <RootFileTree />
+                <FileTreeRoot />
             </div>
         </div>
     );
 }
 
-function RootFileTree() {
-    const fileTree = useFileSystem(state => state.fsTree);
-    return <FileTree path="/" name="/" node={fileTree.get('/')!} />;
+function FileTreeRoot() {
+    const fsTree = useFileSystem(state => state.fsTree);
+    return <FileTree path="/" name="/" node={fsTree.get('/')!} />;
 }
