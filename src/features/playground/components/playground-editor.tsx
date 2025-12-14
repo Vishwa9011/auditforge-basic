@@ -44,7 +44,7 @@ export function PlaygroundEditor() {
     }, [data?.content, setCurrentFileContent]);
 
     return (
-        <div className="h-full w-full">
+        <div className="h-full min-h-0 w-full overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
                 <ResizablePanel>
                     <CodeEditor

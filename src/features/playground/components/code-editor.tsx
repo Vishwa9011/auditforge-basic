@@ -12,10 +12,10 @@ type CodeEditorProps = {
 };
 
 export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProps) {
-    const dirtyInos = useFileExplorerStore(state => state.changedInos);
-    const markFileDirty = useFileExplorerStore(state => state.addChangedIno);
-    const fileDrafts = useFileExplorerStore(state => state.files);
-    const upsertDraftContent = useFileExplorerStore(state => state.updateFileContent);
+    const unsavedInos = useFileExplorerStore(state => state.unsavedInos);
+    const markUnsaved = useFileExplorerStore(state => state.markUnsaved);
+    const draftsByIno = useFileExplorerStore(state => state.draftsByIno);
+    const upsertDraftContent = useFileExplorerStore(state => state.upsertDraftContent);
     const debouncedUpsertDraftContent = useDebouncedCallback(upsertDraftContent, 100);
 
     function handleEditorValidation(markers: readonly { message: string }[]) {
@@ -25,18 +25,23 @@ export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProp
     function handleEditorChange(value?: string) {
         if (meta && value !== undefined) {
             debouncedUpsertDraftContent(meta.ino, value, path || undefined);
-            if (!dirtyInos.has(meta.ino)) markFileDirty(meta.ino);
+            if (unsavedInos.has(meta.ino)) {
+                if (value === content) {
+                    useFileExplorerStore.getState().clearUnsaved(meta.ino);
+                }
+            }
+            if (!unsavedInos.has(meta.ino)) markUnsaved(meta.ino);
         }
     }
 
     const draftContent = useMemo(() => {
         if (!meta) return null;
-        if (!fileDrafts.has(meta.ino)) return null;
-        return fileDrafts.get(meta.ino)?.content;
-    }, [fileDrafts, meta]);
+        if (!draftsByIno.has(meta.ino)) return null;
+        return draftsByIno.get(meta.ino)?.content;
+    }, [draftsByIno, meta]);
 
     useEffect(() => {
-        const upsertDraftContent = useFileExplorerStore.getState().updateFileContent;
+        const upsertDraftContent = useFileExplorerStore.getState().upsertDraftContent;
         if (meta && content !== undefined && content !== null) {
             if (draftContent == null) {
                 upsertDraftContent(meta.ino, content, path || undefined);

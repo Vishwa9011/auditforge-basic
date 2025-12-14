@@ -47,4 +47,3 @@ export function isDir(node: FsNode | InodeMeta): boolean {
 export function isFile(node: FsNode | InodeMeta): boolean {
     return getMeta(node).type === 'file';
 }
-

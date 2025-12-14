@@ -8,7 +8,7 @@ export function FileExplorer() {
                 <h2 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">Explorer</h2>
             </div>
 
-            <div className="scroll-thin min-h-0 flex-1 px-1 py-1">
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 py-1">
                 <FileTreeRoot />
             </div>
         </div>

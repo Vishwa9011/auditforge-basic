@@ -34,4 +34,3 @@ export function NodeNameInput({ isOpen, onBlur, onSubmit, defaultValue }: NodeNa
         </div>
     );
 }
-

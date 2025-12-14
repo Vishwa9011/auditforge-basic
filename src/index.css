@@ -127,11 +127,8 @@
 @layer components {
     .icon {
         @apply inline-block size-3.5;
-
     }
 }
-
-
 
 @utility scroll-thin {
     &::-webkit-scrollbar {

@@ -5,10 +5,10 @@ import { FileBraces, Pencil } from 'lucide-react';
 import { memo, useState, type MouseEvent } from 'react';
 import type { InodeMeta } from '../../types';
 import { useFileSystem } from '../../store';
-import { DeleteDialog } from '../delete-dialog';
 import { NodeNameInput } from './NodeNameInput';
 import { TreeItemActionBar } from './TreeItemActionBar';
 import type { FileOperationMode } from './types';
+import { DeleteDialog } from '../dialogs/delete-dialog';
 
 type FileItemProps = {
     name: string;
@@ -88,4 +88,3 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
         </div>
     );
 });
-

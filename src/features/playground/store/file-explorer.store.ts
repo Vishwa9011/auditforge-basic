@@ -6,54 +6,62 @@ import { enableMapSet } from 'immer';
 enableMapSet();
 
 type FileExplorerStoreState = {
-    files: Map<
+    currentFileContent: string | null;
+    draftsByIno: Map<
         Ino,
         {
             path: string;
             ino: Ino;
             content: string;
-            mtime: number;
+            updatedAtMs: number;
         }
     >;
-    changedInos: Set<Ino>;
-    updateFileContent: (ino: Ino, content: string, path?: string) => void;
-    addChangedIno: (ino: Ino) => void;
-    removeInoFromChanged: (ino: Ino) => void;
+    unsavedInos: Set<Ino>;
+    upsertDraftContent: (ino: Ino, content: string, path?: string) => void;
+    markUnsaved: (ino: Ino) => void;
+    clearUnsaved: (ino: Ino) => void;
+    setCurrentFileContent: (content: string | null) => void;
 };
 
 export const useFileExplorerStore = create<FileExplorerStoreState>()(
     immer(set => ({
-        files: new Map(),
-        changedInos: new Set(),
-        addChangedIno: (ino: Ino) => {
+        currentFileContent: null,
+        draftsByIno: new Map(),
+        unsavedInos: new Set(),
+        markUnsaved: (ino: Ino) => {
             set(state => {
-                state.changedInos.add(ino);
+                state.unsavedInos.add(ino);
             });
         },
 
-        removeInoFromChanged: (ino: Ino) => {
+        clearUnsaved: (ino: Ino) => {
             set(state => {
-                state.changedInos.delete(ino);
+                state.unsavedInos.delete(ino);
             });
         },
-        updateFileContent: (ino: Ino, content: string, path?: string) => {
+        upsertDraftContent: (ino: Ino, content: string, path?: string) => {
             set(state => {
-                const existing = state.files.get(ino);
+                const existing = state.draftsByIno.get(ino);
                 if (existing) {
                     existing.content = content;
-                    existing.mtime = Date.now();
+                    existing.updatedAtMs = Date.now();
                     if (path) {
                         existing.path = path;
                     }
-                    state.files.set(ino, existing);
+                    state.draftsByIno.set(ino, existing);
                 } else {
-                    state.files.set(ino, {
+                    state.draftsByIno.set(ino, {
                         path: path || `untitled-${ino}`,
                         ino,
-                        mtime: Date.now(),
+                        updatedAtMs: Date.now(),
                         content,
                     });
                 }
+            });
+        },
+        setCurrentFileContent: (content: string | null) => {
+            set(state => {
+                state.currentFileContent = content;
             });
         },
     })),

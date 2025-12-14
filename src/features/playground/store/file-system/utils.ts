@@ -1,7 +1,13 @@
-import type { FsNode, Ino, ResolveResult } from '../../types';
 import { META_KEY } from './constants';
-import { coerceInodeMeta, wrapMeta } from './inode-meta';
 import { getMeta, isDir } from './fs-node';
+import { useFileSystem } from '../file-system.store';
+import { coerceInodeMeta, wrapMeta } from './inode-meta';
+import type { FsNode, Ino, ResolveResult } from '../../types';
+
+export function resolvePath(path: string, fsTreeParam?: Map<string, FsNode>): ResolveResult {
+    const fsTree = fsTreeParam ?? useFileSystem.getState().fsTree;
+    return resolvePathInTree(path, fsTree);
+}
 
 export function resolvePathInTree(path: string, fsTree: Map<string, FsNode>): ResolveResult {
     const parts = path.split('/').filter(Boolean);
@@ -113,4 +119,3 @@ export function computeNextIno(fsTree: Map<string, FsNode>): Ino {
 
 export const pathIndexed = new Map<string, boolean>();
 export const renderedPathsIndex = pathIndexed;
-

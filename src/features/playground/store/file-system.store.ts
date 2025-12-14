@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { enableMapSet } from 'immer';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { FsNode, Ino, ResolveResult } from '../types';
+import type { FsNode, Ino } from '../types';
 import {
     META_KEY,
     computeNextIno,
@@ -10,17 +10,12 @@ import {
     isDir,
     makeDirNode,
     makeFileNode,
-    resolvePathInTree,
+    resolvePath,
     serializeFsTree,
     splitPath,
 } from './file-system';
 
 enableMapSet();
-
-export function resolvePath(path: string, fsTreeParam?: Map<string, FsNode>): ResolveResult {
-    const fsTree = fsTreeParam ?? useFileSystem.getState().fsTree;
-    return resolvePathInTree(path, fsTree);
-}
 
 /** ---- state ---- */
 

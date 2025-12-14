@@ -5,32 +5,31 @@ import {
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
-    AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { InodeMeta } from '../../types';
 import { useFileExplorerStore, useFileSystem } from '../../store';
 import { useToggle } from '../../hooks';
-import { X } from 'lucide-react';
+import { TriangleAlert, X } from 'lucide-react';
 import { writeFileContent } from '../../lib';
 import { useMemo, useState, type MouseEvent } from 'react';
 import { resolveFilename } from '../../store/file-system';
 
-type CloseFileButtonProps = InodeMeta & { path: string; name?: string };
+type CloseFileButtonProps = InodeMeta & { path: string; name?: string; content?: string };
 
 export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
     const [isAlertOpen, setIsAlertOpen] = useToggle(false);
     const [isSaving, setIsSaving] = useState(false);
     const closeFile = useFileSystem(state => state.closeFile);
-    const draftContent = useFileExplorerStore(state => state.files.get(ino)?.content || '');
-    const isDirty = useFileExplorerStore(state => state.changedInos.has(ino));
-    const markFileClean = useFileExplorerStore(state => state.removeInoFromChanged);
+    const draftContent = useFileExplorerStore(state => state.draftsByIno.get(ino)?.content || '');
+    const hasUnsavedChanges = useFileExplorerStore(state => state.unsavedInos.has(ino));
 
+    const clearUnsaved = useFileExplorerStore(state => state.clearUnsaved);
     const displayName = useMemo(() => name ?? resolveFilename(path) ?? 'this file', [name, path]);
 
     const requestClose = () => {
-        if (isDirty) {
+        if (hasUnsavedChanges) {
             setIsAlertOpen(true);
         } else {
             closeFile(path);
@@ -44,7 +43,7 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
         setIsSaving(true);
         try {
             await writeFileContent(ino, draftContent);
-            markFileClean(ino);
+            clearUnsaved(ino);
             closeFile(path);
             setIsAlertOpen(false);
         } finally {
@@ -56,7 +55,7 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
         event.preventDefault();
         event.stopPropagation();
 
-        markFileClean(ino);
+        clearUnsaved(ino);
         closeFile(path);
         setIsAlertOpen(false);
     };
@@ -64,25 +63,34 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
     return (
         <>
             <Button
+                type="button"
                 size="icon"
                 variant="ghost"
-                className="group hover:!bg-accent/80 h-5 w-5 rounded"
-                title="Close file"
-                aria-label="Close file"
+                className="hover:!bg-accent/80 relative size-6 rounded-sm p-0 opacity-60 transition-opacity group-hover:opacity-100"
+                title={hasUnsavedChanges ? 'Close (unsaved changes)' : 'Close'}
+                aria-label={hasUnsavedChanges ? 'Close file (unsaved changes)' : 'Close file'}
                 onPointerDown={event => event.stopPropagation()}
                 onClick={event => {
                     event.stopPropagation();
                     requestClose();
                 }}
             >
-                <span
-                    className={
-                        isDirty
-                            ? 'bg-foreground size-2 rounded-full group-hover:hidden'
-                            : 'bg-foreground hidden size-2 rounded-full'
-                    }
-                />
-                <X className={isDirty ? 'hidden size-3 group-hover:block' : 'block size-3'} />
+                <span className="pointer-events-none absolute inset-0">
+                    <span
+                        className={
+                            hasUnsavedChanges
+                                ? 'bg-foreground/90 absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity group-hover:opacity-0'
+                                : 'bg-foreground/90 absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0'
+                        }
+                    />
+                    <X
+                        className={
+                            hasUnsavedChanges
+                                ? 'text-muted-foreground absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100'
+                                : 'text-muted-foreground absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity group-hover:opacity-100'
+                        }
+                    />
+                </span>
             </Button>
 
             <AlertDialog
@@ -92,31 +100,59 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
                     setIsAlertOpen(nextOpen);
                 }}
             >
-                <AlertDialogContent onPointerDown={event => event.stopPropagation()}>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Save changes to {displayName}?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Your changes will be lost if you don&apos;t save them.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
+                <AlertDialogContent
+                    className="rounded-xl p-6 sm:max-w-xs"
+                    onPointerDown={event => event.stopPropagation()}
+                    onClick={event => event.stopPropagation()}
+                >
+                    <div className="flex flex-col items-center text-center">
+                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-500">
+                            <TriangleAlert className="size-6" aria-hidden="true" />
+                        </div>
 
-                    <AlertDialogFooter>
-                        <AlertDialogCancel asChild>
-                            <Button variant="secondary" disabled={isSaving} onClick={e => e.stopPropagation()}>
-                                Keep editing
-                            </Button>
-                        </AlertDialogCancel>
+                        <AlertDialogHeader className="space-y-1">
+                            <AlertDialogTitle className="text-center text-base leading-snug">
+                                Save changes you made to <span className="font-semibold">{displayName}</span>?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-muted-foreground text-center text-sm leading-relaxed">
+                                Your changes will be lost if you don&apos;t save them.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
 
-                        <Button variant="destructive" disabled={isSaving} onClick={handleDiscardChanges}>
-                            Discard
-                        </Button>
+                        <div className="mt-5 grid w-full gap-2">
+                            <AlertDialogAction asChild>
+                                <Button
+                                    className="h-10 w-full rounded-full"
+                                    disabled={isSaving}
+                                    onClick={handleSaveChanges}
+                                >
+                                    {isSaving ? 'Saving…' : 'Save'}
+                                </Button>
+                            </AlertDialogAction>
 
-                        <AlertDialogAction asChild>
-                            <Button disabled={isSaving} onClick={handleSaveChanges}>
-                                {isSaving ? 'Saving…' : 'Save'}
-                            </Button>
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
+                            <AlertDialogAction asChild>
+                                <Button
+                                    variant="secondary"
+                                    className="h-10 w-full rounded-full"
+                                    disabled={isSaving}
+                                    onClick={handleDiscardChanges}
+                                >
+                                    Don&apos;t Save
+                                </Button>
+                            </AlertDialogAction>
+
+                            <AlertDialogCancel asChild>
+                                <Button
+                                    variant="outline"
+                                    className="h-10 w-full rounded-full"
+                                    disabled={isSaving}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    Cancel
+                                </Button>
+                            </AlertDialogCancel>
+                        </div>
+                    </div>
                 </AlertDialogContent>
             </AlertDialog>
         </>

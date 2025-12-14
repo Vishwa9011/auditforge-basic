@@ -19,4 +19,3 @@ export function TreeItemActionBar({ children, isHidden }: TreeItemActionBarProps
         </div>
     );
 }
-

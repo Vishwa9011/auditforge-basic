@@ -1,7 +1,6 @@
 import type { Brand } from '@/types';
 import type { META_KEY } from '../store/file-system';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export declare const InoBrand: unique symbol;
 export type Ino = Brand<number, typeof InoBrand>;
 

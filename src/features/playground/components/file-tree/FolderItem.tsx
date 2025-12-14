@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useToggle } from '../../hooks';
-import { DeleteDialog } from '../delete-dialog';
 import { Button } from '@/components/ui/button';
 import { buildPath, renderedPathsIndex } from '../../store/file-system';
 import { useFileSystem } from '../../store';
@@ -12,6 +11,7 @@ import { ChevronRight, FilePlusCorner, Folder, FolderOpen, FolderPlus, Pencil } 
 import { NodeNameInput } from './NodeNameInput';
 import { TreeItemActionBar } from './TreeItemActionBar';
 import type { FolderOperationMode } from './types';
+import { DeleteDialog } from '../dialogs/delete-dialog';
 
 type FolderItemProps = {
     name: string;

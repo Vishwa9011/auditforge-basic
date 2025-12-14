@@ -8,10 +8,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import type { InodeMeta } from '../types';
-import { Button } from '@/components/ui/button';
 import { Trash } from 'lucide-react';
 import type { MouseEvent } from 'react';
+import type { InodeMeta } from '../../types';
+import { Button } from '@/components/ui/button';
 
 type DeleteDialogProps = {
     type: InodeMeta['type'];
