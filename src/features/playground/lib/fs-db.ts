@@ -1,6 +1,5 @@
 import { openDB, type IDBPDatabase } from 'idb';
-import type { FsNode, Ino, InodeMeta } from '../types';
-import { META_KEY } from '../store/file-system.store';
+import type { Ino } from '../types';
 
 export const DB_NAME = 'AuditForgeFileSystem';
 export const FILE_STORE = 'AuditForgeSystem_files';
@@ -62,75 +61,4 @@ export async function readFileContent(ino: Ino) {
 export async function writeFileContent(ino: Ino, content: string) {
     const bytes = encoder.encode(content);
     await writeFileBytes(ino, bytes);
-}
-
-export function makeFileNode(ino: Ino) {
-    return {
-        ino,
-        mode: 511,
-        type: 'file',
-        mtimeMs: Date.now(),
-        size: 0,
-    } as InodeMeta;
-}
-
-export function makeDirNode(ino: Ino) {
-    return {
-        ino,
-        mode: 511,
-        type: 'dir',
-        mtimeMs: Date.now(),
-        size: 0,
-    } as InodeMeta;
-}
-
-/** Utility: strongly typed meta getter */
-function isInodeMetaLike(value: unknown): value is InodeMeta {
-    if (!value || typeof value !== 'object') return false;
-    const v = value as { ino?: unknown; type?: unknown };
-    return typeof v.ino === 'number' && (v.type === 'file' || v.type === 'dir');
-}
-
-function coerceInodeMeta(value: unknown): InodeMeta | null {
-    if (!isInodeMetaLike(value)) return null;
-    const v = value as {
-        ino?: unknown;
-        type?: unknown;
-        mode?: unknown;
-        mtimeMs?: unknown;
-        size?: unknown;
-    };
-    return {
-        ino: v.ino as Ino,
-        type: v.type as InodeMeta['type'],
-        mode: typeof v.mode === 'number' ? v.mode : 511,
-        mtimeMs: typeof v.mtimeMs === 'number' ? v.mtimeMs : Date.now(),
-        size: typeof v.size === 'number' ? v.size : 0,
-    };
-}
-
-/** Utility: strongly typed meta getter (supports legacy shapes) */
-export function getMeta(node: FsNode | InodeMeta): InodeMeta {
-    if (!(node instanceof Map)) {
-        const coerced = coerceInodeMeta(node);
-        if (coerced) return coerced;
-        throw new Error('Invalid FsNode: expected Map with META_KEY metadata');
-    }
-
-    const metaValue = node.get(META_KEY);
-    const meta = coerceInodeMeta(metaValue);
-    if (!meta) {
-        throw new Error('Invalid FsNode: missing META_KEY metadata');
-    }
-
-    return meta;
-}
-
-/** Type guard helpers */
-export function isDir(node: FsNode | InodeMeta): boolean {
-    return getMeta(node).type === 'dir';
-}
-
-export function isFile(node: FsNode | InodeMeta): boolean {
-    return getMeta(node).type === 'file';
 }

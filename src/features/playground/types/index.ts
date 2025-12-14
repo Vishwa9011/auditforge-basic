@@ -1,5 +1,5 @@
 import type { Brand } from '@/types';
-import type { META_KEY } from '../store/file-system.store';
+import type { META_KEY } from '../store/file-system';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export declare const InoBrand: unique symbol;

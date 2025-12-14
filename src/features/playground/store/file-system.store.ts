@@ -2,127 +2,25 @@ import { create } from 'zustand';
 import { enableMapSet } from 'immer';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getMeta, isDir, makeDirNode, makeFileNode } from '../lib';
 import type { FsNode, Ino, ResolveResult } from '../types';
-import { deserializeFsTree, serializeFsTree } from './file-system/fs-tree-serialization';
-import { META_KEY } from './file-system/constants';
-import { coerceInodeMeta, wrapMeta } from './file-system/inode-meta';
-
-export { META_KEY };
+import {
+    META_KEY,
+    computeNextIno,
+    deserializeFsTree,
+    isDir,
+    makeDirNode,
+    makeFileNode,
+    resolvePathInTree,
+    serializeFsTree,
+    splitPath,
+} from './file-system';
 
 enableMapSet();
 
 export function resolvePath(path: string, fsTreeParam?: Map<string, FsNode>): ResolveResult {
     const fsTree = fsTreeParam ?? useFileSystem.getState().fsTree;
-    const parts = path.split('/').filter(Boolean);
-
-    // root
-    let node = fsTree.get('/');
-    if (!node) {
-        return { kind: 'missing', at: '/' };
-    }
-
-    // special case: "/"
-    if (parts.length === 0) {
-        return { kind: 'found', node, meta: getMeta(node) };
-    }
-
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-
-        if (!isDir(node)) {
-            return { kind: 'missing', at: parts.slice(0, i).join('/') };
-        }
-
-        const next = node.get(part);
-        if (!next) {
-            return { kind: 'missing', at: parts.slice(0, i + 1).join('/') };
-        }
-
-        if (next instanceof Map) {
-            node = next as FsNode;
-            continue;
-        }
-
-        const meta = coerceInodeMeta(next);
-        if (meta) {
-            if (i < parts.length - 1) {
-                return { kind: 'missing', at: parts.slice(0, i + 1).join('/') };
-            }
-            return { kind: 'found', node: wrapMeta(meta), meta };
-        }
-
-        return { kind: 'missing', at: parts.slice(0, i + 1).join('/') };
-    }
-
-    return { kind: 'found', node, meta: getMeta(node) };
+    return resolvePathInTree(path, fsTree);
 }
-
-export function resolveFilename(path: string) {
-    const parts = path.split('/').filter(Boolean);
-    return parts.length === 0 ? null : parts[parts.length - 1];
-}
-
-export function getDirEntries(node: FsNode) {
-    if (!(node instanceof Map)) return [];
-
-    const outDirs: Array<[string, FsNode]> = [];
-    const outFiles: Array<[string, FsNode]> = [];
-
-    for (const [key, value] of node.entries()) {
-        if (key === META_KEY) continue;
-        if (typeof key !== 'string') continue;
-
-        if (value instanceof Map) {
-            const meta = getMeta(value);
-            if (meta.type === 'dir') {
-                outDirs.push([key, value]);
-            } else {
-                outFiles.push([key, value]);
-            }
-            continue;
-        }
-    }
-    return [...outDirs.sort(), ...outFiles.sort()];
-}
-
-export function buildPath(parentPath: string, name: string) {
-    if (parentPath === '/') return `/${name}`;
-    return `${parentPath}/${name}`;
-}
-
-function splitPath(path: string): { parentPath: string; name: string } | null {
-    const parts = path.split('/').filter(Boolean);
-    const name = parts.pop();
-    if (!name) return null;
-    const parentPath = parts.length === 0 ? '/' : `/${parts.join('/')}`;
-    return { parentPath, name };
-}
-
-function computeNextIno(fsTree: Map<string, FsNode>): Ino {
-    let max = 0;
-
-    const walk = (node: FsNode) => {
-        const meta = getMeta(node);
-        max = Math.max(max, meta.ino);
-        for (const [key, value] of node.entries()) {
-            if (key === META_KEY) continue;
-            if (value instanceof Map) {
-                walk(value as FsNode);
-                continue;
-            }
-            const m = coerceInodeMeta(value);
-            if (m) max = Math.max(max, m.ino);
-        }
-    };
-
-    for (const [, root] of fsTree.entries()) walk(root);
-
-    return (max + 1) as Ino;
-}
-
-export const pathIndexed = new Map<string, boolean>();
-export const renderedPathsIndex = pathIndexed;
 
 /** ---- state ---- */
 
@@ -167,42 +65,20 @@ const defaultFsTree = new Map<string, FsNode>([
 /** ---- store ---- */
 export const useFileSystem = create<FileSystemState>()(
     persist(
-        immer((set, get) => ({
-            fsTree: defaultFsTree,
-            nextIno: computeNextIno(defaultFsTree),
-            activeFile: null,
-            openFiles: new Set<string>(),
-
-            allocateIno: () => {
-                const ino = get().nextIno;
-                set(state => {
-                    state.nextIno = (ino + 1) as Ino;
-                });
-                return ino;
-            },
-
-            setActiveFile: path => {
+        immer((set, get) => {
+            const setActiveFile = (path: string | null) => {
                 set(state => {
                     state.activeFile = path;
                 });
-            },
-            setActiveFilePath: path => {
-                set(state => {
-                    state.activeFile = path;
-                });
-            },
+            };
 
-            addOpenFiles: path => {
+            const openFile = (path: string) => {
                 set(state => {
                     state.openFiles.add(path);
                 });
-            },
-            openFile: path => {
-                set(state => {
-                    state.openFiles.add(path);
-                });
-            },
-            closeOpenFile: path => {
+            };
+
+            const closeFile = (path: string) => {
                 set(state => {
                     state.openFiles.delete(path);
                     if (state.activeFile === path) {
@@ -213,87 +89,98 @@ export const useFileSystem = create<FileSystemState>()(
                         }
                     }
                 });
-            },
-            closeFile: path => {
-                set(state => {
-                    state.openFiles.delete(path);
-                    if (state.activeFile === path) {
-                        if (state.openFiles.size > 0) {
-                            state.activeFile = Array.from(state.openFiles)[0];
-                        } else {
-                            state.activeFile = null;
-                        }
-                    }
-                });
-            },
-            closeAllOpenFiles: () => {
+            };
+
+            const closeAllFiles = () => {
                 set(state => {
                     state.openFiles.clear();
                     state.activeFile = null;
                 });
-            },
-            closeAllFiles: () => {
-                set(state => {
-                    state.openFiles.clear();
-                    state.activeFile = null;
-                });
-            },
-            createFile: (path, filename) => {
-                set(state => {
-                    const res = resolvePath(path, state.fsTree);
-                    if (res.kind !== 'found') return;
-                    if (!isDir(res.node)) return;
-                    if (res.node.has(filename)) return;
+            };
 
-                    const ino = state.nextIno;
-                    state.nextIno = (ino + 1) as Ino;
-                    res.node.set(filename, new Map().set(META_KEY, makeFileNode(ino)));
-                });
-            },
-            createDir: (path, dirname) => {
-                set(state => {
-                    const res = resolvePath(path, state.fsTree);
-                    if (res.kind !== 'found') return;
-                    if (!isDir(res.node)) return;
-                    if (res.node.has(dirname)) return;
+            return {
+                fsTree: defaultFsTree,
+                nextIno: computeNextIno(defaultFsTree),
+                activeFile: null,
+                openFiles: new Set<string>(),
 
-                    const ino = state.nextIno;
-                    state.nextIno = (ino + 1) as Ino;
-                    res.node.set(dirname, new Map().set(META_KEY, makeDirNode(ino)));
-                });
-            },
-            renameNode: (path, newName) => {
-                set(state => {
-                    const split = splitPath(path);
-                    if (!split) return;
-                    const { parentPath, name } = split;
+                allocateIno: () => {
+                    const ino = get().nextIno;
+                    set(state => {
+                        state.nextIno = (ino + 1) as Ino;
+                    });
+                    return ino;
+                },
 
-                    const res = resolvePath(parentPath, state.fsTree);
-                    if (res.kind !== 'found') return;
-                    if (!isDir(res.node)) return;
-                    if (!res.node.has(name)) return;
-                    if (res.node.has(newName)) return;
+                setActiveFile,
+                setActiveFilePath: setActiveFile,
 
-                    const node = res.node.get(name);
-                    if (!node) return;
-                    res.node.delete(name);
-                    res.node.set(newName, node);
-                });
-            },
+                addOpenFiles: openFile,
+                openFile,
 
-            deleteNode: path => {
-                set(state => {
-                    const split = splitPath(path);
-                    if (!split) return;
-                    const { parentPath, name } = split;
+                closeOpenFile: closeFile,
+                closeFile,
 
-                    const res = resolvePath(parentPath, state.fsTree);
-                    if (res.kind !== 'found') return;
-                    if (!isDir(res.node)) return;
-                    res.node.delete(name);
-                });
-            },
-        })),
+                closeAllOpenFiles: closeAllFiles,
+                closeAllFiles,
+
+                createFile: (path, filename) => {
+                    set(state => {
+                        const res = resolvePath(path, state.fsTree);
+                        if (res.kind !== 'found') return;
+                        if (!isDir(res.node)) return;
+                        if (res.node.has(filename)) return;
+
+                        const ino = state.nextIno;
+                        state.nextIno = (ino + 1) as Ino;
+                        res.node.set(filename, new Map().set(META_KEY, makeFileNode(ino)));
+                    });
+                },
+                createDir: (path, dirname) => {
+                    set(state => {
+                        const res = resolvePath(path, state.fsTree);
+                        if (res.kind !== 'found') return;
+                        if (!isDir(res.node)) return;
+                        if (res.node.has(dirname)) return;
+
+                        const ino = state.nextIno;
+                        state.nextIno = (ino + 1) as Ino;
+                        res.node.set(dirname, new Map().set(META_KEY, makeDirNode(ino)));
+                    });
+                },
+                renameNode: (path, newName) => {
+                    set(state => {
+                        const split = splitPath(path);
+                        if (!split) return;
+                        const { parentPath, name } = split;
+
+                        const res = resolvePath(parentPath, state.fsTree);
+                        if (res.kind !== 'found') return;
+                        if (!isDir(res.node)) return;
+                        if (!res.node.has(name)) return;
+                        if (res.node.has(newName)) return;
+
+                        const node = res.node.get(name);
+                        if (!node) return;
+                        res.node.delete(name);
+                        res.node.set(newName, node);
+                    });
+                },
+
+                deleteNode: path => {
+                    set(state => {
+                        const split = splitPath(path);
+                        if (!split) return;
+                        const { parentPath, name } = split;
+
+                        const res = resolvePath(parentPath, state.fsTree);
+                        if (res.kind !== 'found') return;
+                        if (!isDir(res.node)) return;
+                        res.node.delete(name);
+                    });
+                },
+            };
+        }),
         {
             name: 'file-system-storage',
             storage: createJSONStorage(() => localStorage),

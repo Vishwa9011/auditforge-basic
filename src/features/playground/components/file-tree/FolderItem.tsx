@@ -3,7 +3,8 @@ import { cn } from '@/lib/utils';
 import { useToggle } from '../../hooks';
 import { DeleteDialog } from '../delete-dialog';
 import { Button } from '@/components/ui/button';
-import { buildPath, renderedPathsIndex, useFileSystem } from '../../store';
+import { buildPath, renderedPathsIndex } from '../../store/file-system';
+import { useFileSystem } from '../../store';
 import type { FsNode, InodeMeta } from '../../types';
 import { memo, useState, type MouseEvent, type ReactNode } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -102,7 +103,13 @@ export const FolderItem = memo(function FolderItem({ name, path, children }: Fol
                                     isOpen && 'rotate-90',
                                 )}
                             />
-                            <FolderIcon className="text-muted-foreground size-4" />
+                            <FolderIcon
+                                className="size-4 transition-all"
+                                fill="#E3B341"
+                                fillOpacity={0.75}
+                                stroke={isOpen ? '#8F6B1F' : '#B8964E'}
+                                strokeWidth={isOpen ? 1.75 : 1.5}
+                            />
                             <p className="truncate">{name}</p>
                         </div>
                     )}
@@ -127,9 +134,7 @@ export const FolderItem = memo(function FolderItem({ name, path, children }: Fol
                     onBlur={handleNameInputBlur}
                     onSubmit={handleNameSubmit}
                 />
-                <div className="border-border/50 mt-0.5 border-l pl-2">
-                    {children}
-                </div>
+                <div className="border-border/50 mt-0.5 border-l pl-2">{children}</div>
             </CollapsibleContent>
         </Collapsible>
     );

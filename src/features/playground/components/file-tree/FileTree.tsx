@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import type { FsNode, InodeMeta } from '../../types';
-import { buildPath, getDirEntries, renderedPathsIndex } from '../../store';
-import { getMeta } from '../../lib';
+import { buildPath, getDirEntries, getMeta, renderedPathsIndex } from '../../store/file-system';
 import { FileItem } from './FileItem';
 import { FolderItem } from './FolderItem';
 

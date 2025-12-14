@@ -2,7 +2,8 @@ import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bot, Save, SaveAll, Sidebar, X } from 'lucide-react';
-import { resolveFilename, resolvePath, useFileSystem } from '../store';
+import { resolveFilename } from '../store/file-system';
+import { resolvePath, useFileSystem } from '../store';
 
 export function PlaygroundHeader() {
     const openFiles = useFileSystem(state => state.openFiles);
