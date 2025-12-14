@@ -16,14 +16,15 @@ import { Button } from '@/components/ui/button';
 type DeleteDialogProps = {
     type: InodeMeta['type'];
     name: string;
-    action: (e: MouseEvent<HTMLButtonElement>) => void;
+    action: () => void;
+    onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
 };
 
-export function DeleteDialog({ type, name, action }: DeleteDialogProps) {
+export function DeleteDialog({ type, name, action, onClick }: DeleteDialogProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant={'ghost'} size={'icon-xs'}>
+                <Button variant={'ghost'} size={'icon-xs'} onClick={onClick}>
                     <Trash />
                 </Button>
             </DialogTrigger>
@@ -37,11 +38,11 @@ export function DeleteDialog({ type, name, action }: DeleteDialogProps) {
 
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary">
+                        <Button type="button" variant="secondary" className="cursor-pointer">
                             Close
                         </Button>
                     </DialogClose>
-                    <Button type="submit" onClick={action}>
+                    <Button type="submit" onClick={action} className="cursor-pointer">
                         Yes, delete <code>{name}</code> {type == 'file' ? 'file' : 'folder'}
                     </Button>
                 </DialogFooter>

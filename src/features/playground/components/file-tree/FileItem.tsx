@@ -41,8 +41,7 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
         setOperationMode('rename');
     };
 
-    const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
-        event.stopPropagation();
+    const handleDelete = () => {
         deleteNode(path);
         toast.success('Deleted successfully');
     };
@@ -83,7 +82,7 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
                 <Button variant="ghost" size="icon-xs" onClick={handleRenameClick}>
                     <Pencil />
                 </Button>
-                <DeleteDialog action={handleDelete} name={name} type={node.type} />
+                <DeleteDialog action={handleDelete} onClick={e => e.stopPropagation()} name={name} type={node.type} />
             </TreeItemActionBar>
         </div>
     );

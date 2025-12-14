@@ -73,6 +73,7 @@ export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProp
                         fontLigatures: true,
                         cursorBlinking: 'smooth',
                         smoothScrolling: true,
+                        mouseWheelZoom: true,
                         wordWrap: 'on',
                         fontSize: 16,
                     }}

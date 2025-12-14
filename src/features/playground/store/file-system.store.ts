@@ -7,6 +7,7 @@ import {
     META_KEY,
     computeNextIno,
     deserializeFsTree,
+    getWorkspaceNames,
     isDir,
     makeDirNode,
     makeFileNode,
@@ -20,11 +21,13 @@ enableMapSet();
 /** ---- state ---- */
 
 type FileSystemState = {
+    cwd: string;
     fsTree: Map<string, FsNode>;
     nextIno: Ino;
     activeFile: string | null;
     openFiles: Set<string>; // set of file paths
 
+    selectWorkspace: (name: string) => void;
     allocateIno: () => Ino;
     setActiveFile: (path: string | null) => void;
     setActiveFilePath: (path: string | null) => void;
@@ -47,13 +50,7 @@ const defaultFsTree = new Map<string, FsNode>([
         '/',
         new Map()
             .set(META_KEY, makeDirNode(0 as Ino))
-            .set(
-                'src',
-                new Map()
-                    .set(META_KEY, makeDirNode(1 as Ino))
-                    .set('server.ts', new Map().set(META_KEY, makeFileNode(3 as Ino))),
-            )
-            .set('index.ts', new Map().set(META_KEY, makeFileNode(2 as Ino))),
+            .set('.workspaces', new Map().set(META_KEY, makeDirNode(1 as Ino))),
     ],
 ]);
 
@@ -94,6 +91,7 @@ export const useFileSystem = create<FileSystemState>()(
             };
 
             return {
+                cwd: '/.workspaces/default_workspace',
                 fsTree: defaultFsTree,
                 nextIno: computeNextIno(defaultFsTree),
                 activeFile: null,
@@ -118,6 +116,14 @@ export const useFileSystem = create<FileSystemState>()(
 
                 closeAllOpenFiles: closeAllFiles,
                 closeAllFiles,
+
+                selectWorkspace: (name: string) => {
+                    const workspaceNames = getWorkspaceNames(get().fsTree);
+                    if (!workspaceNames.includes(name)) return;
+                    set(state => {
+                        state.cwd = `/.workspaces/${name}`;
+                    });
+                },
 
                 createFile: (path, filename) => {
                     set(state => {
@@ -163,6 +169,7 @@ export const useFileSystem = create<FileSystemState>()(
                 },
 
                 deleteNode: path => {
+                    console.log('path: ', path);
                     set(state => {
                         const split = splitPath(path);
                         if (!split) return;

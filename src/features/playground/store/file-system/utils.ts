@@ -9,7 +9,7 @@ export function resolvePath(path: string, fsTreeParam?: Map<string, FsNode>): Re
     return resolvePathInTree(path, fsTree);
 }
 
-export function resolvePathInTree(path: string, fsTree: Map<string, FsNode>): ResolveResult {
+function resolvePathInTree(path: string, fsTree: Map<string, FsNode>): ResolveResult {
     const parts = path.split('/').filter(Boolean);
 
     // root
@@ -115,6 +115,21 @@ export function computeNextIno(fsTree: Map<string, FsNode>): Ino {
     for (const [, root] of fsTree.entries()) walk(root);
 
     return (max + 1) as Ino;
+}
+
+export function getWorkspaceNames(fsTree: Map<string, FsNode>): string[] {
+    const workspacesNodeResult = resolvePathInTree('/.workspaces', fsTree);
+    if (workspacesNodeResult.kind !== 'found') return [];
+    if (!isDir(workspacesNodeResult.node)) return [];
+
+    const workspaceNames: string[] = [];
+    for (const [name, node] of workspacesNodeResult.node.entries()) {
+        if (name === META_KEY) continue;
+        if (!(node instanceof Map)) continue;
+        if (!isDir(node)) continue;
+        workspaceNames.push(name);
+    }
+    return workspaceNames;
 }
 
 export const pathIndexed = new Map<string, boolean>();

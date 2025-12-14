@@ -51,6 +51,12 @@ export const FolderItem = memo(function FolderItem({ name, path, children }: Fol
         setOperationMode('rename');
     };
 
+    const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
+        setOperationMode('delete');
+        console.log('Deleting folder: ', path);
+    };
+
     const handleNameSubmit = (name: string) => {
         if (operationMode === 'create-file') {
             if (renderedPathsIndex.has(buildPath(path, name))) {
@@ -88,7 +94,7 @@ export const FolderItem = memo(function FolderItem({ name, path, children }: Fol
             <CollapsibleTrigger asChild>
                 <div
                     className={cn(
-                        'group flex h-7 w-full items-center justify-between gap-2 rounded-md px-2 text-sm',
+                        'group flex h-7 w-full items-center justify-between gap-2 rounded-md px-1 text-sm',
                         'hover:bg-accent/50',
                     )}
                 >
@@ -128,17 +134,22 @@ export const FolderItem = memo(function FolderItem({ name, path, children }: Fol
                         <Button variant="ghost" size="icon-xs" onClick={handleRenameClick}>
                             <Pencil />
                         </Button>
-                        <DeleteDialog action={() => setOperationMode('delete')} name={name} type={'dir'} />
+                        <DeleteDialog
+                            onClick={handleDeleteClick}
+                            action={() => handleNameSubmit(path)}
+                            name={name}
+                            type={'dir'}
+                        />
                     </TreeItemActionBar>
                 </div>
             </CollapsibleTrigger>
-            <CollapsibleContent className="pl-5">
+            <CollapsibleContent className="pl-2.5">
                 <NodeNameInput
                     isOpen={isNameInputOpen && operationMode != 'rename'}
                     onBlur={handleNameInputBlur}
                     onSubmit={handleNameSubmit}
                 />
-                <div className="border-border/50 mt-0.5 border-l pl-2">{children}</div>
+                <div className="border-border/50 mt-0.5 border-l pl-0">{children}</div>
             </CollapsibleContent>
         </Collapsible>
     );
