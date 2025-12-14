@@ -1,5 +1,7 @@
 import Editor from '@monaco-editor/react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FileNode } from '../types';
+import { useFileExplorerStore } from '../store';
 
 type CodeEditorProps = {
     content?: string;
@@ -7,14 +9,29 @@ type CodeEditorProps = {
     file: FileNode | null;
 };
 
-export function CodeEditor({ content }: CodeEditorProps) {
+export function CodeEditor({ content, fileId, file }: CodeEditorProps) {
+    const updateFileContent = useFileExplorerStore(state => state.updateFileContent);
+    const [draft, setDraft] = useState(content ?? '');
+
+    useEffect(() => {
+        setDraft(content ?? '');
+    }, [content, fileId]);
+
     function handleEditorValidation(markers: readonly { message: string }[]) {
         markers.forEach(marker => console.log('onValidate:', marker.message));
     }
 
-    function handleEditorChange(value: string | undefined) {
-        console.log('onChange:', value);
-    }
+    const handleEditorChange = useCallback((value: string | undefined) => {
+        setDraft(value ?? '');
+    }, []);
+
+    useEffect(() => {
+        if (!fileId) return;
+        if (draft === (content ?? '')) return;
+
+        const timeout = setTimeout(() => updateFileContent(fileId, draft), 300);
+        return () => clearTimeout(timeout);
+    }, [content, draft, fileId, updateFileContent]);
 
     return (
         <div className="h-full w-full border-2 border-black ">
@@ -22,7 +39,7 @@ export function CodeEditor({ content }: CodeEditorProps) {
                 height="100%"
                 theme="vs-dark"
                 defaultLanguage="javascript"
-                defaultValue={content || ''}
+                value={draft}
                 onValidate={handleEditorValidation}
                 onChange={handleEditorChange}
                 options={{
@@ -33,6 +50,7 @@ export function CodeEditor({ content }: CodeEditorProps) {
                     smoothScrolling: true,
                     wordWrap: 'on',
                     fontSize: 16,
+                    readOnly: !file,
                 }}
             />
         </div>

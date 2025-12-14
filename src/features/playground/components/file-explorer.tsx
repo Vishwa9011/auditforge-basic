@@ -1,5 +1,5 @@
-import { ROOT_ID, useFileExplorerStore } from '../store';
 import { FileTree } from './file-tree';
+import { useFileSystem } from '../store';
 
 export function FileExplorer() {
     return (
@@ -16,12 +16,6 @@ export function FileExplorer() {
 }
 
 function RootFileTree() {
-    const rootChildNodeIds = useFileExplorerStore(state => {
-        const rootNode = state.nodes.get(ROOT_ID);
-        if (!rootNode || rootNode.type !== 'folder') return null;
-        return rootNode.children;
-    });
-
-    if (!rootChildNodeIds) return null;
-    return <FileTree nodeIds={rootChildNodeIds} />;
+    const fileTree = useFileSystem(state => state.fsTree);
+    return <FileTree path="/" name="/" node={fileTree.get('/')!} />;
 }

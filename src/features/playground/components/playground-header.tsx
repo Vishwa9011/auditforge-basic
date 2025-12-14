@@ -1,27 +1,29 @@
-import { useFileExplorerStore } from '../store';
+import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import type { FileNode } from '../types';
 import { Button } from '@/components/ui/button';
 import { Bot, Save, SaveAll, Sidebar, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { resolveFilename, resolvePath, useFileSystem } from '../store';
 
 export function PlaygroundHeader() {
-    const { openFiles, activeFileId, nodes } = useFileExplorerStore(
-        useShallow(state => ({
-            openFiles: state.openFiles,
-            activeFileId: state.activeFileId,
-            nodes: state.nodes,
-        })),
-    );
+    const openFiles = useFileSystem(state => state.openFiles);
+    const activeFile = useFileSystem(state => state.activeFile);
+    const closeFile = useFileSystem(state => state.closeOpenFile);
 
-    const activeFiles = useMemo(() => {
-        if (openFiles.size === 0) return [];
-
+    const openFilesNode = useMemo(() => {
         return Array.from(openFiles)
-            .map(fileId => nodes.get(fileId))
-            .filter((node): node is FileNode => node?.type === 'file');
-    }, [nodes, openFiles]);
+            .map(filePath => {
+                const parent = resolvePath(filePath);
+                if (parent.kind == 'found') {
+                    return {
+                        ...parent.meta,
+                        path: filePath,
+                        name: resolveFilename(filePath) || 'untitled',
+                    };
+                }
+                return null;
+            })
+            .filter(v => v != null);
+    }, [openFiles]);
 
     return (
         <header className="">
@@ -50,16 +52,21 @@ export function PlaygroundHeader() {
             <div className="flex h-8 items-center overflow-hidden border-b">
                 <div className="h-full min-w-0 flex-1">
                     <div className="scroll-thin flex h-full items-center overflow-x-auto overflow-y-hidden ">
-                        {activeFiles.map(file => (
+                        {openFilesNode.map(file => (
                             <div
-                                key={file.id}
+                                key={file.path}
                                 className={cn(
-                                    'hover:bg-accent/50 flex h-full cursor-pointer items-center gap-1 border-r px-2 whitespace-nowrap',
-                                    file.id === activeFileId && 'bg-accent/50 font-semibold',
+                                    'hover:bg-accent/50 flex h-full cursor-pointer items-center gap-2 border-r pr-2 pl-3 whitespace-nowrap',
+                                    file.path === activeFile && 'bg-accent/50 font-semibold',
                                 )}
                             >
                                 <span className="text-sm">{file.name}</span>
-                                <Button variant="ghost" size="icon" className="hover:!bg-accent/80 h-5 w-5">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="hover:!bg-accent/80 h-5 w-5 rounded"
+                                    onClick={() => closeFile(file.path)}
+                                >
                                     <X className="size-3" />
                                 </Button>
                             </div>

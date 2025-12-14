@@ -8,14 +8,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import type { NodeType } from '../types';
+import type { InodeMeta } from '../types';
 import { Button } from '@/components/ui/button';
 import { Trash } from 'lucide-react';
+import type { MouseEvent } from 'react';
 
 type DeleteDialogProps = {
-    type: NodeType;
+    type: InodeMeta['type'];
     name: string;
-    action: () => void;
+    action: (e: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function DeleteDialog({ type, name, action }: DeleteDialogProps) {

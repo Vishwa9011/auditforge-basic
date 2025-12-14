@@ -4,60 +4,76 @@ import { useToggle } from '../hooks';
 import { Input } from '@/components/ui/input';
 import { DeleteDialog } from './delete-dialog';
 import { Button } from '@/components/ui/button';
-import { useFileExplorerStore } from '../store';
-import type { FileNode, FolderNode } from '../types';
+import { buildPath, getDirEntries, pathIndexed, useFileSystem } from '../store';
+import type { FsNode, InodeMeta } from '../types';
 import { memo, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight, FileBraces, FilePlusCorner, Folder, FolderOpen, FolderPlus, Pencil } from 'lucide-react';
+import { getMeta } from '../lib';
 
 type FileTreeProps = {
-    nodeIds: string[];
+    name: string;
+    path: string;
+    node: FsNode | InodeMeta;
+    depth?: number;
 };
 
-export const FileTree = memo(function FileTree({ nodeIds }: FileTreeProps) {
+export const FileTree = memo(function FileTree({ path, name, node }: FileTreeProps) {
+    pathIndexed.set(path, true);
+    const meta = getMeta(node);
+    if (meta.type == 'file') {
+        return <FileItem path={path} name={name} node={meta} />;
+    }
+
     return (
         <div className="space-y-0.5">
-            {nodeIds.map(nodeId => (
-                <FileTreeNode key={nodeId} nodeId={nodeId} />
+            {getDirEntries(node as FsNode).map(([childName, childNode]) => (
+                <FileTreeNode path={buildPath(path, childName)} key={childName} name={childName} node={childNode} />
             ))}
         </div>
     );
 });
 
 type FileTreeNodeProps = {
-    nodeId: string;
+    name: string;
+    node: FsNode | InodeMeta;
+    depth?: number;
+    path: string;
 };
 
-const FileTreeNode = memo(function FileTreeNode({ nodeId }: FileTreeNodeProps) {
-    const node = useFileExplorerStore(state => state.nodes.get(nodeId));
-    if (!node) return null;
+const FileTreeNode = ({ name, node, path }: FileTreeNodeProps) => {
+    const meta = getMeta(node);
+    pathIndexed.set(path, true);
 
-    switch (node.type) {
+    switch (meta.type) {
         case 'file':
-            return <FileItem node={node as FileNode} />;
-        case 'folder':
-            return <FolderItem node={node as FolderNode} />;
+            return <FileItem path={path} name={name} node={meta} />;
+        case 'dir':
+            return <FolderItem path={path} name={name} node={node} />;
         default:
             return null;
     }
-});
-
-type FileItemProps = {
-    node: FileNode;
 };
 
-const FileItem = memo(function FileItem({ node }: FileItemProps) {
-    const renameNode = useFileExplorerStore(state => state.renameNode);
-    const deleteNode = useFileExplorerStore(state => state.deleteNode);
-    const addOpenFile = useFileExplorerStore(state => state.addOpenFile);
-    const setActiveFile = useFileExplorerStore(state => state.setActiveFile);
+type FileItemProps = {
+    name: string;
+    node: InodeMeta;
+    depth?: number;
+    path: string;
+};
+
+const FileItem = memo(function FileItem({ path, name, node }: FileItemProps) {
+    const renameNode = useFileSystem(state => state.renameNode);
+    const deleteNode = useFileSystem(state => state.deleteNode);
+    const addOpenFiles = useFileSystem(state => state.addOpenFiles);
+    const setActiveFile = useFileSystem(state => state.setActiveFile);
 
     const [operationMode, setOperationMode] = useState<FileOperationMode>('none');
     const [isNameInputOpen, setIsNameInputOpen] = useState(false);
 
     const handleNameSubmit = (nextName: string) => {
         if (operationMode === 'rename') {
-            renameNode(node.id, nextName);
+            renameNode(path, nextName);
             toast.success('Renamed successfully');
         }
         setIsNameInputOpen(false);
@@ -70,8 +86,9 @@ const FileItem = memo(function FileItem({ node }: FileItemProps) {
         setOperationMode('rename');
     };
 
-    const handleDelete = () => {
-        deleteNode(node.id);
+    const handleDelete = (e: MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        deleteNode(path);
         toast.success('Deleted successfully');
     };
 
@@ -81,8 +98,8 @@ const FileItem = memo(function FileItem({ node }: FileItemProps) {
 
     const onFileClick = () => {
         console.log('Adding file to open files: ', node);
-        addOpenFile(node.id);
-        setActiveFile(node.id);
+        addOpenFiles(path);
+        setActiveFile(path);
     };
 
     return (
@@ -91,18 +108,19 @@ const FileItem = memo(function FileItem({ node }: FileItemProps) {
                 'group flex h-7 cursor-pointer items-center justify-between gap-2 rounded-md px-2 text-sm',
                 'hover:bg-accent/50',
             )}
+            onClick={onFileClick}
         >
             {isNameInputOpen ? (
                 <NodeNameInput
                     isOpen={isNameInputOpen}
                     onBlur={handleNameInputBlur}
                     onSubmit={handleNameSubmit}
-                    defaultValue={node.name}
+                    defaultValue={name}
                 />
             ) : (
-                <div className="flex min-w-0 items-center gap-1.5" onClick={onFileClick}>
+                <div className="flex min-w-0 items-center gap-1.5">
                     <FileBraces className="text-muted-foreground size-4" />
-                    <span className="truncate">{node.name}</span>
+                    <span className="truncate">{name}</span>
                 </div>
             )}
 
@@ -110,22 +128,25 @@ const FileItem = memo(function FileItem({ node }: FileItemProps) {
                 <Button variant="ghost" size="icon-xs" onClick={handleRenameClick}>
                     <Pencil />
                 </Button>
-                <DeleteDialog action={handleDelete} name={node.name} type={node.type} />
+                <DeleteDialog action={handleDelete} name={name} type={node.type} />
             </TreeItemActionBar>
         </div>
     );
 });
 
 type FolderItemProps = {
-    node: FolderNode;
+    name: string;
+    node: FsNode | InodeMeta;
+    depth?: number;
+    path: string;
 };
 
-const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
+const FolderItem = memo(function FolderItem({ name, node, path }: FolderItemProps) {
     const [isOpen, setIsOpen] = useToggle();
-    const createFile = useFileExplorerStore(state => state.createFile);
-    const createFolder = useFileExplorerStore(state => state.createFolder);
-    const renameNode = useFileExplorerStore(state => state.renameNode);
-    const deleteNode = useFileExplorerStore(state => state.deleteNode);
+    const createFile = useFileSystem(state => state.createFile);
+    const createFolder = useFileSystem(state => state.createDir);
+    const renameNode = useFileSystem(state => state.renameNode);
+    const deleteNode = useFileSystem(state => state.deleteNode);
 
     const [operationMode, setOperationMode] = useState<FolderOperationMode>('none');
     const [isNameInputOpen, setIsNameInputOpen] = useState(false);
@@ -152,16 +173,20 @@ const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
 
     const handleNameSubmit = (name: string) => {
         if (operationMode === 'create-file') {
-            createFile(node.id, name);
+            if (pathIndexed.has(buildPath(path, name))) {
+                toast.error('A file or folder with this name already exists');
+                throw new Error('A file or folder with this name already exists');
+            }
+            createFile(path, name);
             toast.success('File created successfully');
         } else if (operationMode === 'create-folder') {
-            createFolder(node.id, name);
+            createFolder(path, name);
             toast.success('Folder created successfully');
         } else if (operationMode === 'rename') {
-            renameNode(node.id, name);
+            renameNode(path, name);
             toast.success('Renamed successfully');
         } else if (operationMode === 'delete') {
-            deleteNode(node.id);
+            deleteNode(path);
             toast.success('Deleted successfully');
         }
         setIsNameInputOpen(false);
@@ -188,7 +213,7 @@ const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
                             isOpen={isNameInputOpen}
                             onBlur={handleNameInputBlur}
                             onSubmit={handleNameSubmit}
-                            defaultValue={node.name}
+                            defaultValue={name}
                         />
                     ) : (
                         <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5">
@@ -199,7 +224,7 @@ const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
                                 )}
                             />
                             <FolderIcon className="text-muted-foreground size-4" />
-                            <p className="truncate">{node.name}</p>
+                            <p className="truncate">{name}</p>
                         </div>
                     )}
 
@@ -213,7 +238,7 @@ const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
                         <Button variant="ghost" size="icon-xs" onClick={handleRenameClick}>
                             <Pencil />
                         </Button>
-                        <DeleteDialog action={() => setOperationMode('delete')} name={node.name} type={node.type} />
+                        <DeleteDialog action={() => setOperationMode('delete')} name={name} type={'dir'} />
                     </TreeItemActionBar>
                 </div>
             </CollapsibleTrigger>
@@ -224,7 +249,7 @@ const FolderItem = memo(function FolderItem({ node }: FolderItemProps) {
                     onSubmit={handleNameSubmit}
                 />
                 <div className="border-border/50 mt-0.5 border-l pl-2">
-                    <FileTree nodeIds={node.children} />
+                    <FileTree path={path} name={name} node={node} />
                 </div>
             </CollapsibleContent>
         </Collapsible>
