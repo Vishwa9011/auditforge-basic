@@ -1,14 +1,16 @@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Pencil } from 'lucide-react';
+import { FileIcon } from '../file-icon';
 import { Button } from '@/components/ui/button';
-import { FileBraces, Pencil } from 'lucide-react';
-import { memo, useState, type MouseEvent } from 'react';
 import type { InodeMeta } from '../../types';
 import { useFileSystem } from '../../store';
 import { NodeNameInput } from './NodeNameInput';
-import { TreeItemActionBar } from './TreeItemActionBar';
 import type { FileOperationMode } from './types';
+import { memo, useState, type MouseEvent } from 'react';
+import { TreeItemActionBar } from './TreeItemActionBar';
 import { DeleteDialog } from '../dialogs/delete-dialog';
+import { getFileExtension } from '../../store/file-system';
 
 type FileItemProps = {
     name: string;
@@ -72,7 +74,7 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
                 />
             ) : (
                 <div className="flex min-w-0 items-center gap-1.5">
-                    <FileBraces className="text-muted-foreground size-4" />
+                    <FileIcon mode="img" className="size-4" extension={getFileExtension(path)} />
                     <span className="truncate">{name}</span>
                 </div>
             )}

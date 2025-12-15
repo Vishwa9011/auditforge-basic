@@ -104,7 +104,7 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
                     onClick={event => event.stopPropagation()}
                 >
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-500">
+                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-muted text-foreground">
                             <TriangleAlert className="size-6" aria-hidden="true" />
                         </div>
 

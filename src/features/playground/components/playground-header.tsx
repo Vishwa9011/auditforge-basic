@@ -7,8 +7,9 @@ import { saveAllUnsavedFiles, saveFileByIno } from '../lib';
 import { CloseFileButton } from './dialogs/close-file-button';
 import { useFileExplorerStore, useFileSystem } from '../store';
 import { Bot, Loader2, Save, SaveAll, Sidebar } from 'lucide-react';
-import { resolveFilename, resolvePath } from '../store/file-system';
+import { getFileExtension, resolveFilename, resolvePath } from '../store/file-system';
 import { CloseAllFilesButton } from './dialogs/close-all-files-button';
+import FileIcon from './file-icon';
 
 export function PlaygroundHeader() {
     const [isSaving, setIsSaving] = useState(false);
@@ -158,6 +159,7 @@ export function PlaygroundHeader() {
                                         }
                                     }}
                                 >
+                                    <FileIcon className="size-4" extension={getFileExtension(file.path)} />
                                     <span className={cn('max-w-48 truncate text-xs', isActive && 'font-semibold')}>
                                         {file.name}
                                     </span>

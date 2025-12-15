@@ -3,12 +3,13 @@ import type { InodeMeta } from '../types';
 import { useEffect, useMemo } from 'react';
 import { useFileExplorerStore } from '../store';
 import { useDebouncedCallback } from 'use-debounce';
+import { getFileExtension } from '../store/file-system';
 
 type CodeEditorProps = {
     content?: string | null;
     meta?: InodeMeta | null;
     isEditorOpen: boolean;
-    path?: string | null;
+    path: string;
 };
 
 export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProps) {
@@ -50,11 +51,11 @@ export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProp
     }, [content, meta, draftContent, path]);
 
     return (
-        <div className="h-full w-full border-2 border-black ">
+        <div className="border-border h-full w-full border-2 ">
             {!isEditorOpen ? (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-black/50 text-center">
-                    <h2 className="mb-2 text-2xl font-bold text-white">No file is open</h2>
-                    <p className="text-md max-w-sm text-white/70">
+                <div className="bg-muted flex h-full w-full flex-col items-center justify-center text-center">
+                    <h2 className="text-foreground mb-2 text-2xl font-bold">No file is open</h2>
+                    <p className="text-md text-muted-foreground max-w-sm">
                         Open a file from the file explorer to start editing code.
                     </p>
                 </div>
@@ -62,7 +63,7 @@ export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProp
                 <Editor
                     height="100%"
                     theme="vs-dark"
-                    defaultLanguage="javascript"
+                    defaultLanguage={getLanguageFromExtension(getFileExtension(path))}
                     defaultValue={draftContent ?? ''}
                     value={draftContent ?? ''}
                     onValidate={handleEditorValidation}
@@ -81,4 +82,34 @@ export function CodeEditor({ path, content, meta, isEditorOpen }: CodeEditorProp
             )}
         </div>
     );
+}
+
+// Helper function to determine Monaco language from file extension
+function getLanguageFromExtension(extension: string): string {
+    const languageMap: Record<string, string> = {
+        js: 'javascript',
+        jsx: 'javascript',
+        ts: 'typescript',
+        tsx: 'typescript',
+        html: 'html',
+        css: 'css',
+        json: 'json',
+        md: 'markdown',
+        py: 'python',
+        java: 'java',
+        c: 'c',
+        cpp: 'cpp',
+        cs: 'csharp',
+        go: 'go',
+        rs: 'rust',
+        php: 'php',
+        rb: 'ruby',
+        sh: 'shell',
+        sql: 'sql',
+        yml: 'yaml',
+        yaml: 'yaml',
+        xml: 'xml',
+    };
+
+    return languageMap[extension.toLowerCase()] || 'plaintext';
 }

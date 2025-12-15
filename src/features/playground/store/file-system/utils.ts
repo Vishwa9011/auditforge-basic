@@ -132,5 +132,15 @@ export function getWorkspaceNames(fsTree: Map<string, FsNode>): string[] {
     return workspaceNames;
 }
 
+export const getFileExtension = (path: string) => {
+    const filename = resolveFilename(path);
+    if (!filename) return '';
+    const parts = filename.split('.');
+    if (parts.length <= 1) return '';
+    return parts.pop() || '';
+};
+
+export const extractExtension = getFileExtension;
+
 export const pathIndexed = new Map<string, boolean>();
 export const renderedPathsIndex = pathIndexed;
