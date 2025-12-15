@@ -11,10 +11,17 @@ import {
 import { saveAllUnsavedFiles } from '@features/playground/lib';
 import { useFileExplorerStore, useFileSystem } from '@features/playground/store';
 import { TriangleAlert } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useToggle } from '../../hooks';
 
-export function CloseAllFilesButton() {
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
+type CloseAllFilesButtonProps = {
+    title?: string;
+    isOpen?: boolean;
+    isTriggerButton?: boolean;
+};
+
+export function CloseAllFilesButton({ isOpen, title, isTriggerButton = true }: CloseAllFilesButtonProps) {
+    const [isAlertOpen, setIsAlertOpen] = useToggle();
     const [isWorking, setIsWorking] = useState(false);
 
     const openFilesCount = useFileSystem(state => state.openFiles.size);
@@ -26,11 +33,12 @@ export function CloseAllFilesButton() {
     const unsavedCount = unsavedInos.size;
     const isDisabled = openFilesCount === 0 || isWorking;
 
-    const title = useMemo(() => {
+    const buttonTitle = useMemo(() => {
+        if (title) return title;
         if (openFilesCount === 0) return 'Close all tabs';
         if (unsavedCount > 0) return `Close all tabs (${unsavedCount} unsaved)`;
         return 'Close all tabs';
-    }, [openFilesCount, unsavedCount]);
+    }, [openFilesCount, unsavedCount, title]);
 
     const requestCloseAll = () => {
         if (openFilesCount === 0) return;
@@ -56,19 +64,26 @@ export function CloseAllFilesButton() {
         setIsAlertOpen(false);
     };
 
+    useEffect(() => {
+        if (isOpen === undefined) return;
+        setIsAlertOpen(isOpen);
+    }, [isOpen]);
+
     return (
         <>
-            <Button
-                type="button"
-                variant="ghost"
-                className="h-7 px-2 text-xs"
-                title={title}
-                aria-label={title}
-                disabled={isDisabled}
-                onClick={requestCloseAll}
-            >
-                <span>Close all</span>
-            </Button>
+            {isTriggerButton && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs"
+                    title={buttonTitle}
+                    aria-label={buttonTitle}
+                    disabled={isDisabled}
+                    onClick={requestCloseAll}
+                >
+                    <span>Close all</span>
+                </Button>
+            )}
 
             <AlertDialog
                 open={isAlertOpen}
@@ -79,12 +94,14 @@ export function CloseAllFilesButton() {
             >
                 <AlertDialogContent className="rounded-xl p-6 sm:max-w-sm">
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-muted text-foreground">
+                        <div className="bg-muted text-foreground mb-4 flex size-12 items-center justify-center rounded-xl">
                             <TriangleAlert className="size-6" aria-hidden="true" />
                         </div>
 
-                        <AlertDialogHeader className="space-y-1">
-                            <AlertDialogTitle className="text-base leading-snug">Close all tabs?</AlertDialogTitle>
+                        <AlertDialogHeader className="space-y-1 ">
+                            <AlertDialogTitle className="text-center text-base leading-snug">
+                                {title ?? 'Close all files?'}
+                            </AlertDialogTitle>
                             <AlertDialogDescription className="text-muted-foreground text-sm leading-relaxed">
                                 You have unsaved changes in {unsavedCount} {unsavedCount === 1 ? 'file' : 'files'}.
                             </AlertDialogDescription>
