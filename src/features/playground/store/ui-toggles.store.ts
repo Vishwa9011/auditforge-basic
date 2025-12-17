@@ -1,8 +1,16 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export const UI_TOGGLE_KEYS = ['file-explorer-panel', 'analyzer-panel'] as const;
+export type UiToggleKey = (typeof UI_TOGGLE_KEYS)[number] | (string & {});
+
+export const PERSIST_KEYS: UiToggleKey[] = ['file-explorer-panel'] as const;
+
+const DEFAULT_TOGGLE_STATE: Record<UiToggleKey, boolean> = {
+    'file-explorer-panel': true,
+    'analyzer-panel': false,
+};
 
 type PlaygroundUiToggleStore = {
     toggleStateById: Record<string, boolean>;
@@ -17,11 +25,22 @@ export const usePgUiToggle = create<PlaygroundUiToggleStore>()(
         immer((set, get) => ({
             toggleStateById: {},
 
-            isEnabled: id => Boolean(get().toggleStateById[id]),
+            isEnabled: id => {
+                const state = get();
+                if (id in state.toggleStateById) return Boolean(state.toggleStateById[id]);
+                if (id in DEFAULT_TOGGLE_STATE) return DEFAULT_TOGGLE_STATE[id as UiToggleKey];
+                return false;
+            },
 
             toggle: (id, enabled) => {
                 set(state => {
-                    state.toggleStateById[id] = enabled ?? !state.toggleStateById[id];
+                    const current =
+                        id in state.toggleStateById
+                            ? state.toggleStateById[id]
+                            : id in DEFAULT_TOGGLE_STATE
+                              ? DEFAULT_TOGGLE_STATE[id as UiToggleKey]
+                              : false;
+                    state.toggleStateById[id] = enabled ?? !current;
                 });
             },
 
@@ -34,9 +53,15 @@ export const usePgUiToggle = create<PlaygroundUiToggleStore>()(
         {
             name: 'pg-ui-toggles',
             version: 1,
-            partialize: state => ({
-                toggleStateById: state.toggleStateById,
-            }),
+            partialize: state => {
+                const persistedState: Pick<PlaygroundUiToggleStore, 'toggleStateById'> = { toggleStateById: {} };
+                for (const key of PERSIST_KEYS) {
+                    if (key in state.toggleStateById) {
+                        persistedState.toggleStateById[key] = state.toggleStateById[key];
+                    }
+                }
+                return persistedState;
+            },
             storage: createJSONStorage(() => sessionStorage),
         },
     ),

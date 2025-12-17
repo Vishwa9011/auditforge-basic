@@ -1,8 +1,6 @@
-import { usePgUiToggle, UI_TOGGLE_KEYS } from '@features/playground/store';
+import { usePgUiToggle, type UiToggleKey } from '@features/playground/store';
 
-type UiToggleId = (typeof UI_TOGGLE_KEYS)[number] | (string & {});
-
-export function useUiToggle(id: UiToggleId) {
+export function useUiToggle(id: UiToggleKey) {
     const isEnabled = usePgUiToggle(state => state.isEnabled(id));
     const toggle = usePgUiToggle(state => state.toggle);
 
