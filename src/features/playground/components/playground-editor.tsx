@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useUiToggle } from '@features/playground/hooks';
 import { readFileContent } from '@features/playground/lib';
-import { resolvePath } from '@features/playground/store/file-system';
+import { getFileExtension, resolvePath } from '@features/playground/store/file-system';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
 import { CodeEditor, EmptyEditorState } from '@features/playground/editor/components';
 
@@ -31,12 +30,8 @@ async function getFile(activeFilePath: string | null) {
 }
 
 export function PlaygroundEditor() {
-    const isAnalyzerOpen = useUiToggle('analyzer-panel').isEnabled;
-    console.log('isAnalyzerOpen: ', isAnalyzerOpen);
-
     const setCurrentFileContent = useFileEditorStore(state => state.setCurrentFileContent);
     const activeFilePath = useFileSystem(state => state.activeFile);
-    console.log('activeFilePath: ', activeFilePath);
     const { data } = useQuery({
         queryKey: [activeFilePath],
         queryFn: () => getFile(activeFilePath),
@@ -56,7 +51,7 @@ export function PlaygroundEditor() {
                     path={activeFilePath}
                     content={data?.content}
                     meta={data?.node}
-                    isEditorOpen={!!activeFilePath}
+                    extension={getFileExtension(activeFilePath)}
                 />
             )}
         </div>
