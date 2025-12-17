@@ -11,7 +11,7 @@ export const Route = createFileRoute('/')({
 function Index() {
     useSaveShortcut();
     useUnsavedGuard();
-    const { isEnabled } = useUiToggle('file-explorer-panel');
+    const { isEnabled } = useUiToggle('file-explorer-panel', true);
 
     return (
         <div className="h-dvh w-full overflow-hidden">

@@ -19,7 +19,8 @@ export function PlaygroundHeader() {
     const fsTree = useFileSystem(state => state.fsTree);
     const activeFile = useFileSystem(state => state.activeFile);
     const setActiveFile = useFileSystem(state => state.setActiveFile);
-    const { toggle } = useUiToggle('file-explorer-panel');
+    const toggleAnalyzer = useUiToggle('analyzer-panel').toggle;
+    const toggleExplorer = useUiToggle('file-explorer-panel').toggle;
 
     const unsavedInos = useFileEditorStore(state => state.unsavedInos);
 
@@ -80,7 +81,7 @@ export function PlaygroundHeader() {
                     className="h-8 w-8"
                     title="Toggle sidebar"
                     aria-label="Toggle sidebar"
-                    onClick={() => toggle()}
+                    onClick={() => toggleExplorer()}
                 >
                     <Sidebar className="size-4" />
                 </Button>
@@ -125,6 +126,7 @@ export function PlaygroundHeader() {
                             disabled={!activeFile}
                             title={activeFile ? 'Analyze' : 'Select a file to analyze'}
                             aria-label="Analyze"
+                            onClick={() => toggleAnalyzer()}
                         >
                             <Bot className="size-3.5" />
                             <span>Analyze</span>
