@@ -2,13 +2,13 @@ import { cn } from '@/lib/utils';
 import { useMemo, useState } from 'react';
 import type { InodeMeta } from '@features/playground/types';
 import { Button } from '@/components/ui/button';
-import { useUiToggle } from '@features/playground/hooks/use-ui-toggle';
+import { useUiToggle } from '@features/playground/hooks';
 import { saveAllUnsavedFiles, saveFileByIno } from '@features/playground/lib';
-import { CloseFileButton } from '@features/playground/components/dialogs/close-file-button';
+import { CloseFileButton } from '@features/playground/components/dialogs';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
 import { Bot, Loader2, Save, SaveAll, Sidebar } from 'lucide-react';
 import { getFileExtension, resolveFilename, resolvePath } from '@features/playground/store/file-system';
-import { CloseAllFilesButton } from '@features/playground/components/dialogs/close-all-files-button';
+import { CloseAllFilesButton } from '@features/playground/components/dialogs';
 import FileIcon from '@features/playground/components/file-icon';
 
 export function PlaygroundHeader() {
@@ -16,6 +16,7 @@ export function PlaygroundHeader() {
     const [isSavingAll, setIsSavingAll] = useState(false);
 
     const openFiles = useFileSystem(state => state.openFiles);
+    const fsTree = useFileSystem(state => state.fsTree);
     const activeFile = useFileSystem(state => state.activeFile);
     const setActiveFile = useFileSystem(state => state.setActiveFile);
     const { toggle } = useUiToggle('file-explorer-panel');
@@ -26,7 +27,7 @@ export function PlaygroundHeader() {
         const tabs: Array<InodeMeta & { path: string; name: string }> = [];
 
         for (const filePath of openFiles) {
-            const resolved = resolvePath(filePath);
+            const resolved = resolvePath(filePath, fsTree);
             if (resolved.kind !== 'found') continue;
             tabs.push({
                 ...resolved.meta,
@@ -36,13 +37,13 @@ export function PlaygroundHeader() {
         }
 
         return tabs;
-    }, [openFiles]);
+    }, [openFiles, fsTree]);
 
     const activeMeta = useMemo(() => {
         if (!activeFile) return null;
-        const resolved = resolvePath(activeFile);
+        const resolved = resolvePath(activeFile, fsTree);
         return resolved.kind === 'found' ? resolved.meta : null;
-    }, [activeFile]);
+    }, [activeFile, fsTree]);
 
     const hasActiveUnsavedChanges = activeMeta ? unsavedInos.has(activeMeta.ino) : false;
     const hasAnyUnsavedChanges = unsavedInos.size > 0;

@@ -1,12 +1,11 @@
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { CodeEditor } from '@features/playground/components/code-editor';
+import { CodeEditor, EmptyEditorState } from '@features/playground/editor/components';
 import { resolvePath } from '@features/playground/store/file-system';
 import { readFileContent } from '@features/playground/lib';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { EmptyEditorState } from './empty-editor-state';
-import { useUiToggle } from '../hooks';
+import { useUiToggle } from '@features/playground/hooks';
 
 async function getFile(activeFilePath: string | null) {
     if (!activeFilePath) {
@@ -15,7 +14,7 @@ async function getFile(activeFilePath: string | null) {
             node: null,
         };
     }
-    const node = resolvePath(activeFilePath);
+    const node = resolvePath(activeFilePath, useFileSystem.getState().fsTree);
 
     if (node.kind == 'found') {
         const meta = node.meta;

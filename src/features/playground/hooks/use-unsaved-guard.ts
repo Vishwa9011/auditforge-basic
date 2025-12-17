@@ -1,4 +1,4 @@
-import { useFileEditorStore } from '../store';
+import { useFileEditorStore } from '@features/playground/store';
 import { usePreventUnload } from './use-prevent-unload';
 
 export function useUnsavedGuard() {

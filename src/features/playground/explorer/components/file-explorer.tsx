@@ -1,11 +1,11 @@
-import { FileTree } from '@features/playground/components/file-tree';
+import { FileTree } from './file-tree';
 import { useFileSystem } from '@features/playground/store';
 import { Button } from '@/components/ui/button';
 import { useWorkspaceRootCreate } from '@features/playground/hooks';
 import { resolvePath } from '@features/playground/store/file-system';
 import { FilePlusCorner, FolderPlus } from 'lucide-react';
-import { NodeNameInput } from '@features/playground/components/file-tree/NodeNameInput';
-import { WorkspacePopover } from '@features/playground/components/dialogs/workspace-popover';
+import { NodeNameInput } from './file-tree/NodeNameInput';
+import { WorkspacePopover } from '@features/playground/components/dialogs';
 
 export function FileExplorer() {
     const {

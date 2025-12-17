@@ -17,7 +17,7 @@ export async function saveActiveFile() {
     const activeFile = useFileSystem.getState().activeFile;
     if (!activeFile) return;
 
-    const res = resolvePath(activeFile);
+    const res = resolvePath(activeFile, useFileSystem.getState().fsTree);
     if (res.kind == 'missing') return;
 
     await saveFileByIno(res.meta.ino);
@@ -41,7 +41,7 @@ export const createFileWithContent = async (path: string, filename: string, cont
 
     createFile(path, filename);
 
-    const res = resolvePath(`${path}/${filename}`);
+    const res = resolvePath(`${path}/${filename}`, useFileSystem.getState().fsTree);
     if (res.kind !== 'found') {
         console.error('Failed to create file at', `${path}/${filename}`);
         return false;
