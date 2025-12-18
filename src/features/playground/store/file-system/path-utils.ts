@@ -2,8 +2,10 @@ import { META_KEY } from '@features/playground/store/file-system/constants';
 import { getMeta, isDir } from '@features/playground/store/file-system/fs-node';
 import { coerceInodeMeta, wrapMeta } from '@features/playground/store/file-system/inode-meta';
 import type { FsNode, Ino, ResolveResult } from '@features/playground/types';
+import { useFileSystem } from '../file-system.store';
 
-export function resolvePath(path: string, fsTree: Map<string, FsNode>): ResolveResult {
+export function resolvePath(path: string, fsTree?: Map<string, FsNode>): ResolveResult {
+    fsTree = fsTree ?? useFileSystem.getState().fsTree;
     return resolvePathInTree(path, fsTree);
 }
 
@@ -140,4 +142,3 @@ export const getFileExtension = (path: string) => {
 
 export const pathIndexed = new Map<string, boolean>();
 export const renderedPathsIndex = pathIndexed;
-

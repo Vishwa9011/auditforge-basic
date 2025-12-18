@@ -5,6 +5,7 @@ import { useFileEditorStore } from '@features/playground/store';
 import { useDebouncedCallback } from 'use-debounce';
 import type { editor } from 'monaco-editor';
 import { configureMonaco, DEFAULT_EDITOR_OPTIONS, getEditorLanguage } from '../editor-config';
+import { useEditorSettings } from '@features/settings/store/editor-settings.store';
 
 type CodeEditorProps = {
     content?: string | null;
@@ -16,6 +17,7 @@ type CodeEditorProps = {
 export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) {
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<Monaco | null>(null);
+    const { fontFamily, fontSize, lineHeight, fontLigatures, lineNumbers, wordWrap, minimap } = useEditorSettings();
     const modelPath = useMemo(() => {
         // Monaco's TS/JS worker decides "script kind" from the model URI (e.g. *.ts vs *.js).
         // Ensure the model has a filename-like URI so TS syntax (e.g. `type`) is accepted.
@@ -47,9 +49,26 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
 
         // Focus the editor when mounted
         editor.focus();
+        editor.updateOptions(effectiveEditorOptions);
+        updateEditorLanguage();
+    }
 
-        editor.updateOptions({
+    const effectiveEditorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(
+        () => ({
             ...DEFAULT_EDITOR_OPTIONS,
+            fontFamily:
+                fontFamily === 'System Mono'
+                    ? "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+                    : `'${fontFamily}', monospace`,
+            fontSize,
+            lineHeight,
+            fontLigatures,
+            lineNumbers: lineNumbers ? 'on' : 'off',
+            wordWrap: wordWrap ? 'on' : 'off',
+            minimap: {
+                ...(DEFAULT_EDITOR_OPTIONS.minimap ?? {}),
+                enabled: minimap,
+            },
             // Enable inline suggestions but with specific settings to prevent conflicts
             inlineSuggest: {
                 enabled: true,
@@ -70,10 +89,9 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
             },
             // Smooth cursor
             cursorSmoothCaretAnimation: 'on',
-        });
-
-        updateEditorLanguage();
-    }
+        }),
+        [fontFamily, fontSize, lineHeight, fontLigatures, lineNumbers, wordWrap, minimap],
+    );
 
     function updateEditorLanguage() {
         if (!editorRef.current || monacoRef.current == null) return;
@@ -91,6 +109,11 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
     useEffect(() => {
         updateEditorLanguage();
     }, [path, extension]);
+
+    useEffect(() => {
+        if (!editorRef.current) return;
+        editorRef.current.updateOptions(effectiveEditorOptions);
+    }, [effectiveEditorOptions]);
 
     const draftContent = useMemo(() => {
         if (!meta) return null;
@@ -117,7 +140,7 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
                 onChange={handleEditorChange}
                 beforeMount={configureMonaco}
                 onMount={handleEditorDidMount}
-                options={DEFAULT_EDITOR_OPTIONS}
+                options={effectiveEditorOptions}
                 language={getEditorLanguage(extension)}
             />
         </div>

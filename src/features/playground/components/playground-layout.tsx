@@ -1,6 +1,6 @@
 import { useUiToggle } from '../hooks';
-import { Analyzer } from '../analyzer/components';
-import { PlaygroundEditor } from '@features/playground/components/playground-editor';
+import { AnalyzerLayout } from '../analyzer/components';
+import { EditorLayout } from '../editor/components/editor-layout';
 import { PlaygroundHeader } from '@features/playground/components/playground-header';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
@@ -11,14 +11,14 @@ export function PlaygroundLayout() {
     return (
         <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
             <PlaygroundHeader />
-            <div className="h-full min-h-0 w-full overflow-hidden">
+            <div className="h-[100dvh-40px] w-full overflow-hidden">
                 <ResizablePanelGroup direction="horizontal">
                     <ResizablePanel defaultValue={50}>
-                        <PlaygroundEditor />
+                        <EditorLayout />
                     </ResizablePanel>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={50} hidden={!isAnalyzerOpen}>
-                        <Analyzer />
+                        <AnalyzerLayout />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>

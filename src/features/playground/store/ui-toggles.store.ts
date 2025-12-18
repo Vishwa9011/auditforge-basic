@@ -9,7 +9,7 @@ export const PERSIST_KEYS: UiToggleKey[] = ['file-explorer-panel'] as const;
 
 const DEFAULT_TOGGLE_STATE: Record<UiToggleKey, boolean> = {
     'file-explorer-panel': true,
-    'analyzer-panel': false,
+    'analyzer-panel': true,
 };
 
 type PlaygroundUiToggleStore = {

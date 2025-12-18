@@ -114,15 +114,15 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
-	@layer base {
-	    * {
-	        @apply border-border outline-ring/50;
-	    }
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
 
-	    body {
-	        @apply bg-background text-foreground font-geist;
-	    }
-	}
+    body {
+        @apply bg-background text-foreground font-geist;
+    }
+}
 
 @layer components {
     .icon {
@@ -142,4 +142,8 @@
     &::-webkit-scrollbar-track {
         @apply bg-transparent;
     }
+}
+
+@utility scroll-gutter {
+    scrollbar-gutter: stable;
 }
