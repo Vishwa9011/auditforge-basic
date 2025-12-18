@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import { createFileWithContent } from '@features/playground/lib';
 import { useFileSystem } from '@features/playground/store';
 import { isDir, resolvePath } from '@features/playground/store/file-system';
@@ -11,10 +10,36 @@ type ImportToWorkspaceParams = {
     openAfterImport?: boolean;
 };
 
+export type ImportSourcesToWorkspaceResult =
+    | {
+          ok: true;
+          destinationDir: string;
+          createdCount: number;
+          skippedCount: number;
+          firstImportedPath: string | null;
+      }
+    | { ok: false; reason: 'no-files' };
+
+const normalizeRelativePath = (raw: string) => {
+    const cleaned = raw.replaceAll('\\', '/').trim().replace(/^\/+/g, '');
+    const parts = cleaned.split('/').filter(Boolean);
+    const out: string[] = [];
+    for (const part of parts) {
+        if (part === '.' || part === '') continue;
+        if (part === '..') {
+            out.pop();
+            continue;
+        }
+        out.push(part);
+    }
+    return out.join('/');
+};
+
 const joinFsPath = (base: string, relative: string) => {
     const baseClean = base === '/' ? '' : base.replace(/\/+$/g, '');
-    const relClean = relative.replace(/^\/+/g, '');
+    const relClean = normalizeRelativePath(relative);
     if (!baseClean && !relClean) return '/';
+    if (!relClean) return base || '/';
     return `${baseClean}/${relClean}`;
 };
 
@@ -71,17 +96,21 @@ export async function importSourcesToWorkspace({
     overwrite = true,
     openAfterImport = true,
 }: ImportToWorkspaceParams) {
-    if (files.length === 0) {
-        toast.error('No source files to import');
-        return { ok: false as const };
-    }
+    if (files.length === 0) return { ok: false as const, reason: 'no-files' };
 
     const safeDestination = getUniqueDirPath(destinationDir);
     ensureDirPath(safeDestination);
 
     let firstImportedPath: string | null = null;
+    let createdCount = 0;
+    let skippedCount = 0;
     for (const file of files) {
-        const fullPath = joinFsPath(safeDestination, file.path);
+        const relPath = normalizeRelativePath(file.path);
+        if (!relPath) {
+            skippedCount += 1;
+            continue;
+        }
+        const fullPath = joinFsPath(safeDestination, relPath);
         const split = splitFsPath(fullPath);
         if (!split) continue;
 
@@ -89,12 +118,16 @@ export async function importSourcesToWorkspace({
 
         const fsTree = useFileSystem.getState().fsTree;
         const existingRes = resolvePath(fullPath, fsTree);
-        if (existingRes.kind === 'found' && !overwrite) continue;
+        if (existingRes.kind === 'found' && !overwrite) {
+            skippedCount += 1;
+            continue;
+        }
 
         const ok = await createFileWithContent(split.parentPath, split.name, file.content);
         if (!ok) throw new Error(`Failed to create ${fullPath}`);
 
         if (!firstImportedPath) firstImportedPath = fullPath;
+        createdCount += 1;
     }
 
     if (openAfterImport && firstImportedPath) {
@@ -103,6 +136,5 @@ export async function importSourcesToWorkspace({
         setActiveFilePath(firstImportedPath);
     }
 
-    toast.success(`Imported ${files.length} file${files.length === 1 ? '' : 's'} to workspace`);
-    return { ok: true as const, destinationDir: safeDestination, firstImportedPath };
+    return { ok: true as const, destinationDir: safeDestination, firstImportedPath, createdCount, skippedCount };
 }

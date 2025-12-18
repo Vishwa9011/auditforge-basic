@@ -24,7 +24,7 @@ const normalizePath = (rawPath: string) => {
     return safeParts.join('/');
 };
 
-export const sanitizeFolderName = (rawName: string) => {
+const sanitizeFolderName = (rawName: string) => {
     const name = rawName.trim();
     if (!name) return 'contract';
     return name
@@ -61,11 +61,11 @@ export function parseEtherscanSourceCode(params: {
 
     const fallbackFilename = guessFallbackFilename(params.contractName, params.contractFileName);
 
-    const tryParseJson = (raw: string) => {
+    const parseJson = (raw: string) => {
         try {
-            return { ok: true as const, value: JSON.parse(raw) as unknown };
-        } catch (error) {
-            return { ok: false as const, error };
+            return JSON.parse(raw) as unknown;
+        } catch {
+            return null;
         }
     };
 
@@ -80,10 +80,9 @@ export function parseEtherscanSourceCode(params: {
         }
 
         for (const candidate of candidates) {
-            const parsed = tryParseJson(candidate);
-            if (!parsed.ok) continue;
+            const value = parseJson(candidate);
+            if (value === null) continue;
 
-            const value = parsed.value;
             if (value && typeof value === 'object' && !Array.isArray(value) && 'sources' in value) {
                 const sources = (value as { sources?: unknown }).sources;
                 if (sources && typeof sources === 'object' && !Array.isArray(sources)) {
