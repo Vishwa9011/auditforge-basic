@@ -7,7 +7,7 @@ export const Route = createFileRoute('/import')({
 
 function RouteComponent() {
     return (
-        <div className="h-dvh w-full overflow-auto">
+        <div className="h-full w-full overflow-auto">
             <ContractImport />
         </div>
     );

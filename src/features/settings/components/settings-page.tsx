@@ -37,7 +37,7 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
     }, [normalizedTab]);
 
     return (
-        <div className="flex h-dvh w-full flex-1 flex-col overflow-hidden">
+        <div className="flex h-full w-full flex-1 flex-col overflow-hidden">
             <SettingsTopBar />
             <div className="min-h-0 flex-1 overflow-auto">
                 <div className="mx-auto w-full max-w-5xl px-4 py-4">

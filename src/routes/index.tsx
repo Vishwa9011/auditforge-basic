@@ -14,7 +14,7 @@ function Index() {
     const { isEnabled } = useUiToggle('file-explorer-panel');
 
     return (
-        <div className="h-dvh w-full overflow-hidden">
+        <div className="h-full w-full overflow-hidden">
             <ResizablePanelGroup direction="horizontal" className="min-h-0">
                 <ResizablePanel defaultSize={20} className="min-h-0 max-w-72" hidden={!isEnabled}>
                     <FileExplorer />

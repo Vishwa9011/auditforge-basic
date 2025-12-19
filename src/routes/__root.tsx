@@ -4,9 +4,11 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
     component: () => (
-        <div className="flex h-screen">
+        <div className="flex h-dvh w-full overflow-hidden">
             <ActivityBar />
-            <Outlet />
+            <div className="min-h-0 min-w-0 flex-1">
+                <Outlet />
+            </div>
             <TanStackRouterDevtools />
         </div>
     ),

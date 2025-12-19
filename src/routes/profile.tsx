@@ -104,7 +104,7 @@ function RouteComponent() {
     };
 
     return (
-        <div className="flex h-dvh w-full flex-1 flex-col overflow-hidden">
+        <div className="flex h-full w-full flex-1 flex-col overflow-hidden">
             <header className="bg-background sticky top-0 z-10 border-b">
                 <div className="flex h-12 items-center justify-between px-4">
                     <div className="flex items-center gap-2">
