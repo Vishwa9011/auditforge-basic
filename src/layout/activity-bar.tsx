@@ -1,11 +1,21 @@
 import { cn } from '@/lib/utils';
 import { navLinks } from '@/constants';
 import { Settings } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
 import { useUiToggle } from '@features/playground/hooks';
+import { Link, useRouterState } from '@tanstack/react-router';
 
 export default function ActivityBar() {
+    const location = useRouterState().location;
     const toggle = useUiToggle('file-explorer-panel').toggle;
+
+    const handleFileExplorerClick = () => {
+        if (location.pathname !== '/') {
+            toggle(true);
+        } else {
+            toggle();
+        }
+    };
+
     return (
         <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground z-50 flex h-full w-12 shrink-0 flex-col border-r">
             <nav aria-label="Primary" className="flex flex-1 flex-col items-center gap-1 px-1 py-2">
@@ -13,7 +23,7 @@ export default function ActivityBar() {
                     {navLinks.map(item => (
                         <li key={item.id} className="w-full">
                             <Link
-                                onClick={() => item.id === 'file-explorer' && toggle()}
+                                onClick={() => item.id === 'file-explorer' && handleFileExplorerClick()}
                                 to={item.url}
                                 activeOptions={{ exact: item.url === '/' }}
                                 activeProps={() => ({ 'data-active': 'true' })}
