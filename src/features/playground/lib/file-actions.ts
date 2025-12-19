@@ -1,8 +1,7 @@
-import type { FsNode, Ino } from '@features/playground/types';
+import type { Ino } from '@features/playground/types';
 import { writeFileContent } from '@features/playground/lib/fs-db';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { makeDirNode, META_KEY, resolvePath } from '@features/playground/store/file-system';
-import { WELCOME_FILE_CONTENT } from '../store/file-system/welcome-file-content';
+import { resolvePath, splitPath } from '@features/playground/store/file-system';
 
 export async function saveFileByIno(ino: Ino) {
     const { draftsByIno, clearUnsaved } = useFileEditorStore.getState();
@@ -37,14 +36,21 @@ export async function saveAllUnsavedFiles() {
     return savedCount;
 }
 
-export const createFileWithContent = async (path: string, filename: string, content: string) => {
+export const createFileWithContent = async (path: string, content: string) => {
+    const split = splitPath(path);
     const createFile = useFileSystem.getState().createFile;
 
-    createFile(path, filename);
+    if (!split?.name) {
+        console.error("filename doesn't exist", path);
+        return false;
+    }
 
-    const res = resolvePath(`${path}/${filename}`, useFileSystem.getState().fsTree);
+    createFile(split.parentPath, split.name);
+
+    const res = resolvePath(path, useFileSystem.getState().fsTree);
+    console.log('res: ', res);
     if (res.kind !== 'found') {
-        console.error('Failed to create file at', `${path}/${filename}`);
+        console.error('Failed to create file at', `${path}/${split.name}`);
         return false;
     }
 
@@ -52,25 +58,3 @@ export const createFileWithContent = async (path: string, filename: string, cont
 
     return true;
 };
-
-export function createDefaultWorkspaceSetup() {
-    createFileWithContent('/.workspaces/default_workspace', 'Welcome.txt', WELCOME_FILE_CONTENT);
-    return new Map<string, FsNode>([
-        [
-            '/',
-            new Map()
-                .set(META_KEY, makeDirNode(0 as Ino))
-                .set(
-                    '.workspaces',
-                    new Map()
-                        .set(META_KEY, makeDirNode(1 as Ino))
-                        .set(
-                            'default_workspace',
-                            new Map()
-                                .set(META_KEY, makeDirNode(2 as Ino))
-                                .set('Welcome.txt', new Map().set(META_KEY, makeDirNode(3 as Ino))),
-                        ),
-                ),
-        ],
-    ]);
-}

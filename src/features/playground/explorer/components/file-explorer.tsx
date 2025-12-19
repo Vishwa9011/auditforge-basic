@@ -6,6 +6,7 @@ import { resolvePath } from '@features/playground/store/file-system';
 import { FilePlusCorner, FolderPlus } from 'lucide-react';
 import { NodeNameInput } from './file-tree/NodeNameInput';
 import { WorkspacePopover } from '@features/playground/components/dialogs';
+import { useInitializeDefaultWorkspace } from '../hooks/useInitializeDefaultWorkspace';
 
 export function FileExplorer() {
     const {
@@ -18,6 +19,12 @@ export function FileExplorer() {
         handleNameInputBlur,
         handleNameSubmit,
     } = useWorkspaceRootCreate();
+
+    const isWorkSpaceLoading = useInitializeDefaultWorkspace().isLoading;
+
+    if (isWorkSpaceLoading) {
+        return <WorkspaceLoading />;
+    }
 
     return (
         <div className="flex h-full min-h-0 flex-col">
@@ -80,4 +87,17 @@ function FileTreeRoot() {
     }
 
     return <FileTree path={cwd} name={selectedWorkspace || '/'} node={parent.node} />;
+}
+
+function WorkspaceLoading() {
+    return (
+        <div className="flex h-full min-h-0 flex-col gap-4">
+            <div className="border-border/60 bg-background flex h-10 items-center border-b px-3 py-2">
+                <h2 className="text-muted-foreground align-middle text-xs font-semibold tracking-wide uppercase">
+                    File Explorer
+                </h2>
+            </div>
+            <div className="border-accent mx-auto h-10 w-10 animate-spin rounded-full border-4 border-dashed"></div>
+        </div>
+    );
 }

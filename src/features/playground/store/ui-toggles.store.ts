@@ -7,7 +7,7 @@ export type UiToggleKey = (typeof UI_TOGGLE_KEYS)[number] | (string & {});
 
 export const DEFAULT_TOGGLE_STATE: Record<UiToggleKey, boolean> = {
     'file-explorer-panel': true,
-    'analyzer-panel': true,
+    'analyzer-panel': false,
 };
 
 type PlaygroundUiToggleStore = {

@@ -34,7 +34,6 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
     const createDir = useFileSystem(state => state.createDir);
     const openFile = useFileSystem(state => state.openFile);
     const closeAllFiles = useFileSystem(state => state.closeAllFiles);
-    const setActiveFile = useFileSystem(state => state.setActiveFile);
     const selectWorkspace = useFileSystem(state => state.selectWorkspace);
 
     const unsavedCount = useFileEditorStore(state => state.unsavedInos.size);
@@ -74,7 +73,7 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
 
         const workspaceDirPath = `${WORKSPACES_ROOT}/${workspaceName}`;
         const welcomeFilePath = `${workspaceDirPath}/welcome.md`;
-        const didCreateWelcomeFile = await createFileWithContent(workspaceDirPath, 'welcome.md', WELCOME_FILE_CONTENT);
+        const didCreateWelcomeFile = await createFileWithContent(welcomeFilePath, WELCOME_FILE_CONTENT);
         if (!didCreateWelcomeFile) {
             toast.error('Failed to create welcome file');
             return;
@@ -82,7 +81,6 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
 
         closeAllFiles();
         openFile(welcomeFilePath);
-        setActiveFile(welcomeFilePath);
         selectWorkspace(workspaceName);
 
         setWorkspaceNameInput('');

@@ -29,10 +29,16 @@ type FileSystemState = {
     activeFile: string | null;
     openFiles: Set<string>; // set of file paths
     selectedWorkspace: string | null;
+    isWorkspaceInitialized: boolean;
 
     selectWorkspace: (name: string) => void;
     allocateIno: () => Ino;
     setActiveFile: (path: string | null) => void;
+    /**
+     * Open a file in the editor tabs and set it as active.
+     * @param path
+     * @returns
+     */
     openFile: (path: string) => void;
     closeFile: (path: string) => void;
     closeAllFiles: () => void;
@@ -40,28 +46,13 @@ type FileSystemState = {
     createDir: (path: string, dirname: string) => void;
     renameNode: (path: string, newName: string) => void;
     deleteNode: (path: string) => void;
+    setWorkspaceInitialized: (initialized: boolean) => void;
 };
 
-/** ---- root creation ---- */
-
-const defaultFsTree = new Map<string, FsNode>([
-    [
-        '/',
-        new Map()
-            .set(META_KEY, makeDirNode(0 as Ino))
-            .set(
-                '.workspaces',
-                new Map()
-                    .set(META_KEY, makeDirNode(1 as Ino))
-                    .set(
-                        'default_workspace',
-                        new Map()
-                            .set(META_KEY, makeDirNode(2 as Ino))
-                            .set('Welcome.txt', new Map().set(META_KEY, makeDirNode(3 as Ino))),
-                    ),
-            ),
-    ],
-]);
+const defaultWorkspaceValue = new Map().set(
+    '/',
+    new Map().set(META_KEY, makeDirNode(0 as Ino)).set('.workspaces', new Map().set(META_KEY, makeDirNode(1 as Ino))),
+);
 
 /** ---- store ---- */
 export const useFileSystem = create<FileSystemState>()(
@@ -75,6 +66,7 @@ export const useFileSystem = create<FileSystemState>()(
 
             const openFile = (path: string) => {
                 set(state => {
+                    state.activeFile = path;
                     state.openFiles.add(path);
                 });
             };
@@ -102,10 +94,17 @@ export const useFileSystem = create<FileSystemState>()(
             return {
                 cwd: DEFAULT_CWD,
                 selectedWorkspace: DEFAULT_WORKSPACE,
-                fsTree: defaultFsTree,
-                nextIno: computeNextIno(defaultFsTree),
+                fsTree: defaultWorkspaceValue,
+                nextIno: computeNextIno(defaultWorkspaceValue),
                 activeFile: null,
                 openFiles: new Set<string>(),
+                isWorkspaceInitialized: false,
+
+                setWorkspaceInitialized: (initialized: boolean) => {
+                    set(state => {
+                        state.isWorkspaceInitialized = initialized;
+                    });
+                },
 
                 allocateIno: () => {
                     const ino = get().nextIno;
@@ -147,9 +146,9 @@ export const useFileSystem = create<FileSystemState>()(
                 createDir: (path, dirname) => {
                     set(state => {
                         const res = resolvePath(path, state.fsTree);
-                        if (res.kind !== 'found') return;
-                        if (!isDir(res.node)) return;
-                        if (res.node.has(dirname)) return;
+                        if (res.kind !== 'found') return false;
+                        if (!isDir(res.node)) return false;
+                        if (res.node.has(dirname)) return false;
 
                         const ino = state.nextIno;
                         state.nextIno = (ino + 1) as Ino;

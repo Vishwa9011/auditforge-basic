@@ -1,14 +1,14 @@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Pencil } from 'lucide-react';
-import { FileIcon } from '@features/playground/components/file-icon';
 import { Button } from '@/components/ui/button';
-import type { InodeMeta } from '@features/playground/types';
-import { useFileSystem } from '@features/playground/store';
 import { NodeNameInput } from './NodeNameInput';
 import type { FileOperationMode } from './types';
 import { memo, useState, type MouseEvent } from 'react';
 import { TreeItemActionBar } from './TreeItemActionBar';
+import { useFileSystem } from '@features/playground/store';
+import type { InodeMeta } from '@features/playground/types';
+import { FileIcon } from '@features/playground/components';
 import { DeleteDialog } from '@features/playground/components/dialogs';
 import { getFileExtension } from '@features/playground/store/file-system';
 
@@ -23,7 +23,6 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
     const renameNode = useFileSystem(state => state.renameNode);
     const deleteNode = useFileSystem(state => state.deleteNode);
     const openFile = useFileSystem(state => state.openFile);
-    const setActiveFile = useFileSystem(state => state.setActiveFile);
 
     const [operationMode, setOperationMode] = useState<FileOperationMode>('none');
     const [isNameInputOpen, setIsNameInputOpen] = useState(false);
@@ -54,7 +53,6 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
 
     const onFileClick = () => {
         openFile(path);
-        setActiveFile(path);
     };
 
     return (

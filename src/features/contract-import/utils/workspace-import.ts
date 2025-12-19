@@ -123,7 +123,7 @@ export async function importSourcesToWorkspace({
             continue;
         }
 
-        const ok = await createFileWithContent(split.parentPath, split.name, file.content);
+        const ok = await createFileWithContent(fullPath, file.content);
         if (!ok) throw new Error(`Failed to create ${fullPath}`);
 
         if (!firstImportedPath) firstImportedPath = fullPath;
@@ -131,9 +131,7 @@ export async function importSourcesToWorkspace({
     }
 
     if (openAfterImport && firstImportedPath) {
-        const { openFile, setActiveFile } = useFileSystem.getState();
-        openFile(firstImportedPath);
-        setActiveFile(firstImportedPath);
+        useFileSystem.getState().openFile(firstImportedPath);
     }
 
     return { ok: true as const, destinationDir: safeDestination, firstImportedPath, createdCount, skippedCount };
