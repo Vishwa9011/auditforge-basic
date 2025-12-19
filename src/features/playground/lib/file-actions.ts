@@ -1,7 +1,8 @@
-import type { Ino } from '@features/playground/types';
+import type { FsNode, Ino } from '@features/playground/types';
 import { writeFileContent } from '@features/playground/lib/fs-db';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { resolvePath } from '@features/playground/store/file-system';
+import { makeDirNode, META_KEY, resolvePath } from '@features/playground/store/file-system';
+import { WELCOME_FILE_CONTENT } from '../store/file-system/welcome-file-content';
 
 export async function saveFileByIno(ino: Ino) {
     const { draftsByIno, clearUnsaved } = useFileEditorStore.getState();
@@ -51,3 +52,25 @@ export const createFileWithContent = async (path: string, filename: string, cont
 
     return true;
 };
+
+export function createDefaultWorkspaceSetup() {
+    createFileWithContent('/.workspaces/default_workspace', 'Welcome.txt', WELCOME_FILE_CONTENT);
+    return new Map<string, FsNode>([
+        [
+            '/',
+            new Map()
+                .set(META_KEY, makeDirNode(0 as Ino))
+                .set(
+                    '.workspaces',
+                    new Map()
+                        .set(META_KEY, makeDirNode(1 as Ino))
+                        .set(
+                            'default_workspace',
+                            new Map()
+                                .set(META_KEY, makeDirNode(2 as Ino))
+                                .set('Welcome.txt', new Map().set(META_KEY, makeDirNode(3 as Ino))),
+                        ),
+                ),
+        ],
+    ]);
+}

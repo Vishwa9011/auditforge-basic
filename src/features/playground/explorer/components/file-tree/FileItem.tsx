@@ -23,7 +23,7 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
     const renameNode = useFileSystem(state => state.renameNode);
     const deleteNode = useFileSystem(state => state.deleteNode);
     const openFile = useFileSystem(state => state.openFile);
-    const setActiveFilePath = useFileSystem(state => state.setActiveFilePath);
+    const setActiveFile = useFileSystem(state => state.setActiveFile);
 
     const [operationMode, setOperationMode] = useState<FileOperationMode>('none');
     const [isNameInputOpen, setIsNameInputOpen] = useState(false);
@@ -54,7 +54,7 @@ export const FileItem = memo(function FileItem({ path, name, node }: FileItemPro
 
     const onFileClick = () => {
         openFile(path);
-        setActiveFilePath(path);
+        setActiveFile(path);
     };
 
     return (

@@ -9,16 +9,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { useToggle } from '@features/playground/hooks';
-import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { getWorkspaceNames } from '@features/playground/store/file-system';
-import { Plus } from 'lucide-react';
-import { type FormEvent, type MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { createFileWithContent } from '../../lib';
-import { WELCOME_FILE_CONTENT } from '../../store/file-system/welcome-file-content';
+import { useToggle } from '@features/playground/hooks';
+import { WELCOME_FILE_CONTENT } from '../../store/file-system';
 import { CloseAllFilesButton } from './close-all-files-button';
+import { type FormEvent, type MouseEvent, useState } from 'react';
+import { getWorkspaceNames } from '@features/playground/store/file-system';
+import { useFileEditorStore, useFileSystem } from '@features/playground/store';
 
 const WORKSPACES_ROOT = '/.workspaces';
 

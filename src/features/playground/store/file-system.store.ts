@@ -4,6 +4,8 @@ import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { FsNode, Ino } from '@features/playground/types';
 import {
+    DEFAULT_CWD,
+    DEFAULT_WORKSPACE,
     META_KEY,
     computeNextIno,
     deserializeFsTree,
@@ -31,12 +33,8 @@ type FileSystemState = {
     selectWorkspace: (name: string) => void;
     allocateIno: () => Ino;
     setActiveFile: (path: string | null) => void;
-    setActiveFilePath: (path: string | null) => void;
-    addOpenFiles: (path: string) => void;
     openFile: (path: string) => void;
-    closeOpenFile: (path: string) => void;
     closeFile: (path: string) => void;
-    closeAllOpenFiles: () => void;
     closeAllFiles: () => void;
     createFile: (path: string, filename: string) => void;
     createDir: (path: string, dirname: string) => void;
@@ -51,7 +49,17 @@ const defaultFsTree = new Map<string, FsNode>([
         '/',
         new Map()
             .set(META_KEY, makeDirNode(0 as Ino))
-            .set('.workspaces', new Map().set(META_KEY, makeDirNode(1 as Ino))),
+            .set(
+                '.workspaces',
+                new Map()
+                    .set(META_KEY, makeDirNode(1 as Ino))
+                    .set(
+                        'default_workspace',
+                        new Map()
+                            .set(META_KEY, makeDirNode(2 as Ino))
+                            .set('Welcome.txt', new Map().set(META_KEY, makeDirNode(3 as Ino))),
+                    ),
+            ),
     ],
 ]);
 
@@ -92,8 +100,8 @@ export const useFileSystem = create<FileSystemState>()(
             };
 
             return {
-                cwd: '/.workspaces/default_workspace',
-                selectedWorkspace: 'default_workspace',
+                cwd: DEFAULT_CWD,
+                selectedWorkspace: DEFAULT_WORKSPACE,
                 fsTree: defaultFsTree,
                 nextIno: computeNextIno(defaultFsTree),
                 activeFile: null,
@@ -108,15 +116,11 @@ export const useFileSystem = create<FileSystemState>()(
                 },
 
                 setActiveFile,
-                setActiveFilePath: setActiveFile,
 
-                addOpenFiles: openFile,
                 openFile,
 
-                closeOpenFile: closeFile,
                 closeFile,
 
-                closeAllOpenFiles: closeAllFiles,
                 closeAllFiles,
 
                 selectWorkspace: (name: string) => {

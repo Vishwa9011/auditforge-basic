@@ -131,9 +131,9 @@ export async function importSourcesToWorkspace({
     }
 
     if (openAfterImport && firstImportedPath) {
-        const { openFile, setActiveFilePath } = useFileSystem.getState();
+        const { openFile, setActiveFile } = useFileSystem.getState();
         openFile(firstImportedPath);
-        setActiveFilePath(firstImportedPath);
+        setActiveFile(firstImportedPath);
     }
 
     return { ok: true as const, destinationDir: safeDestination, firstImportedPath, createdCount, skippedCount };

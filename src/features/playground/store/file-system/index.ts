@@ -3,3 +3,4 @@ export * from './fs-node';
 export * from './fs-tree-serialization';
 export * from './inode-meta';
 export * from './path-utils';
+export * from './welcome-file-content';
