@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,6 +11,9 @@ import { cn } from '@/lib/utils';
 import { Link } from '@tanstack/react-router';
 import { Cog, Download, ExternalLink, RotateCcw, Upload } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { APP_SHORTCUTS } from '@/lib/app-shortcuts';
+import { Kbd } from '@/components/ui/kbd';
+import { usePlatform } from '@/hooks/use-platform';
 import {
     THINKING_LEVELS,
     type LlmProvider,
@@ -22,12 +25,13 @@ import { useEditorSettings, type EditorFontFamily } from '../store/editor-settin
 import { useImportSettings, type ImportDestinationBase } from '../store/import-settings.store';
 import { chainConfig } from '@features/contract-import/constants';
 
-export type SettingsTab = 'editor' | 'analyzer' | 'import';
+export type SettingsTab = 'editor' | 'analyzer' | 'import' | 'shortcuts';
 
 export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsTab }) {
     const normalizedTab = useMemo(() => {
         if (initialTab === 'analyzer') return 'analyzer';
         if (initialTab === 'import') return 'import';
+        if (initialTab === 'shortcuts') return 'shortcuts';
         return 'editor';
     }, [initialTab]);
     const [tab, setTab] = useState<SettingsTab>(normalizedTab);
@@ -44,10 +48,11 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                     <Tabs value={tab} onValueChange={v => setTab(v as SettingsTab)} className="w-full">
                         <div className="flex flex-col gap-4 md:flex-row">
                             <div className="md:w-56">
-                                <TabsList className="grid w-full grid-cols-3 md:hidden">
+                                <TabsList className="grid w-full grid-cols-4 md:hidden">
                                     <TabsTrigger value="editor">Editor</TabsTrigger>
                                     <TabsTrigger value="analyzer">Analyzer</TabsTrigger>
                                     <TabsTrigger value="import">Import</TabsTrigger>
+                                    <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
                                 </TabsList>
 
                                 <div className="hidden md:block">
@@ -70,6 +75,11 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                                             onClick={() => setTab('import')}
                                             label="Import"
                                         />
+                                        <SidebarTabButton
+                                            active={tab === 'shortcuts'}
+                                            onClick={() => setTab('shortcuts')}
+                                            label="Shortcuts"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -83,6 +93,9 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                                 </TabsContent>
                                 <TabsContent value="import" className="mt-0">
                                     <ImportSettingsSection />
+                                </TabsContent>
+                                <TabsContent value="shortcuts" className="mt-0">
+                                    <ShortcutsSettingsSection />
                                 </TabsContent>
                             </div>
                         </div>
@@ -207,6 +220,72 @@ function ImportSettingsSection() {
                             Reset to defaults
                         </Button>
                     </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+function KeyCombo({ keys }: { keys: readonly string[] }) {
+    return (
+        <span className="inline-flex items-center">
+            {keys.map((key, index) => (
+                <span key={`${key}-${index}`} className="inline-flex items-center">
+                    {index > 0 && <span className="text-muted-foreground/60 px-1 text-[10px]">+</span>}
+                    <Kbd className={cn('h-6', key === '⌘' && 'text-[13px]')}>{key}</Kbd>
+                </span>
+            ))}
+        </span>
+    );
+}
+
+function ShortcutsSettingsSection() {
+    const platform = usePlatform();
+    const [keymap, setKeymap] = useState<'mac' | 'windows'>(platform === 'mac' ? 'mac' : 'windows');
+
+    return (
+        <div className="space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Keyboard shortcuts</CardTitle>
+                    <CardDescription>Common actions and their default key bindings.</CardDescription>
+                    <CardAction>
+                        <div className="bg-muted/40 flex items-center gap-1 rounded-md border p-1">
+                            <Button
+                                type="button"
+                                variant={keymap === 'mac' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={() => setKeymap('mac')}
+                            >
+                                Mac
+                            </Button>
+                            <Button
+                                type="button"
+                                variant={keymap === 'windows' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={() => setKeymap('windows')}
+                            >
+                                Windows
+                            </Button>
+                        </div>
+                    </CardAction>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="space-y-2">
+                        {APP_SHORTCUTS.map(shortcut => (
+                            <div
+                                key={shortcut.id}
+                                className="flex items-center justify-between gap-6 rounded-lg border p-3"
+                            >
+                                <div className="min-w-0 text-sm font-medium">{shortcut.label}</div>
+                                <KeyCombo keys={keymap === 'mac' ? shortcut.macKeys : shortcut.windowsKeys} />
+                            </div>
+                        ))}
+                    </div>
+                    <Separator />
+                    <div className="text-muted-foreground text-xs">Some shortcuts may vary by browser and OS.</div>
                 </CardContent>
             </Card>
         </div>

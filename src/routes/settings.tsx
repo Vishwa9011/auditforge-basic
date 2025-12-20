@@ -5,7 +5,7 @@ import { SettingsPage } from '@features/settings';
 export const Route = createFileRoute('/settings')({
     validateSearch: z
         .object({
-            tab: z.enum(['editor', 'analyzer', 'import']).optional(),
+            tab: z.enum(['editor', 'analyzer', 'import', 'shortcuts']).optional(),
         })
         .optional(),
     component: RouteComponent,
