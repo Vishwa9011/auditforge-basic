@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { FileExplorer } from '@features/playground/explorer';
-import { PlaygroundLayout } from '@features/playground/components';
+import { OpenFileCommandDialog, PlaygroundLayout } from '@features/playground/components';
 import { useSaveShortcut, useUiToggle, useUnsavedGuard } from '@features/playground/hooks';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import { useShortcuts } from '@/hooks/use-shortcuts';
 
 export const Route = createFileRoute('/')({
     component: Index,
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/')({
 function Index() {
     useSaveShortcut();
     useUnsavedGuard();
+    useShortcuts();
     const { isEnabled } = useUiToggle('file-explorer-panel');
 
     return (
@@ -24,6 +26,7 @@ function Index() {
                     <PlaygroundLayout />
                 </ResizablePanel>
             </ResizablePanelGroup>
+            <OpenFileCommandDialog />
         </div>
     );
 }

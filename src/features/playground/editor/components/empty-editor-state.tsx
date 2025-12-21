@@ -31,7 +31,7 @@ export function EmptyEditorState() {
     const keymap: 'mac' | 'windows' = platform === 'mac' ? 'mac' : 'windows';
 
     return (
-        <div className="bg-accent/10 flex h-full min-h-0 items-center justify-center">
+        <div className="bg-accent/10 pointer-events-none flex h-full min-h-0 items-center justify-center select-none">
             <div className="x pointer-events-none flex flex-col items-center gap-4">
                 <img
                     src="/logo-2.png"
