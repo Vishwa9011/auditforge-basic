@@ -36,8 +36,6 @@ type FileSystemState = {
     setActiveFile: (path: string | null) => void;
     /**
      * Open a file in the editor tabs and set it as active.
-     * @param path
-     * @returns
      */
     openFile: (path: string) => void;
     closeFile: (path: string) => void;
@@ -50,9 +48,17 @@ type FileSystemState = {
     setWorkspaceInitialized: (initialized: boolean) => void;
 };
 
+// Default workspace structure
 const defaultWorkspaceValue = new Map().set(
     '/',
-    new Map().set(META_KEY, makeDirNode(0 as Ino)).set('.workspaces', new Map().set(META_KEY, makeDirNode(1 as Ino))),
+    new Map()
+        .set(META_KEY, makeDirNode(0 as Ino))
+        .set(
+            '.workspaces',
+            new Map()
+                .set(META_KEY, makeDirNode(1 as Ino))
+                .set(DEFAULT_WORKSPACE, new Map().set(META_KEY, makeDirNode(2 as Ino))),
+        ),
 );
 
 /** ---- store ---- */
@@ -239,9 +245,12 @@ export const useFileSystem = create<FileSystemState>()(
             },
             partialize: state => ({
                 fsTree: serializeFsTree(state.fsTree),
+                cwd: state.cwd,
                 nextIno: state.nextIno,
                 activeFile: state.activeFile,
                 openFiles: Array.from(state.openFiles),
+                selectedWorkspace: state.selectedWorkspace,
+                isWorkspaceInitialized: state.isWorkspaceInitialized,
             }),
         },
     ),

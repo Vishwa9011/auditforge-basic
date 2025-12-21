@@ -12,13 +12,13 @@ import {
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { createFileWithContent } from '../../lib';
-import { useToggle, useUiToggle } from '@features/playground/hooks';
+import { confirmCloseAllFilesIfUnsavedChanges, createFileWithContent } from '../../lib';
+import { useToggle } from '@features/playground/hooks';
 import { WELCOME_FILE_CONTENT } from '../../store/file-system';
 import { CloseAllFilesButton } from './close-all-files-button';
 import { type FormEvent, type MouseEvent, useState } from 'react';
 import { getWorkspaceNames } from '@features/playground/store/file-system';
-import { useFileEditorStore, useFileSystem } from '@features/playground/store';
+import { useFileSystem } from '@features/playground/store';
 
 const WORKSPACES_ROOT = '/.workspaces';
 
@@ -27,7 +27,6 @@ type CreateWorkspaceDialogProps = {
 };
 
 export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDialogProps) {
-    const closeAllFilesDialog = useUiToggle('close-all-files-dialog');
     const [createDialogOpen, setCreateDialogOpen] = useToggle(false);
     const [workspaceNameInput, setWorkspaceNameInput] = useState('');
 
@@ -36,13 +35,8 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
     const closeAllFiles = useFileSystem(state => state.closeAllFiles);
     const selectWorkspace = useFileSystem(state => state.selectWorkspace);
 
-    const unsavedCount = useFileEditorStore(state => state.unsavedInos.size);
-
     const ensureNoUnsavedChanges = () => {
-        if (unsavedCount === 0) return true;
-
-        closeAllFilesDialog.toggle(true);
-        return false;
+        return !confirmCloseAllFilesIfUnsavedChanges();
     };
 
     const handleCloseAllFilesComplete = () => {

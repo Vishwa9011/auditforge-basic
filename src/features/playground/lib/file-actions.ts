@@ -1,6 +1,6 @@
 import type { Ino } from '@features/playground/types';
 import { writeFileContent } from '@features/playground/lib/fs-db';
-import { useFileEditorStore, useFileSystem } from '@features/playground/store';
+import { useFileEditorStore, useFileSystem, usePgUiToggle } from '@features/playground/store';
 import { resolvePath, splitPath } from '@features/playground/store/file-system';
 
 export async function saveFileByIno(ino: Ino) {
@@ -34,6 +34,32 @@ export async function saveAllUnsavedFiles() {
     }
 
     return savedCount;
+}
+
+export function confirmCloseAllFilesIfUnsavedChanges() {
+    const unsavedCount = useFileEditorStore.getState().unsavedInos.size;
+    if (unsavedCount === 0) return false;
+    usePgUiToggle.getState().toggle('close-all-files-dialog', true);
+    return true;
+}
+
+export function confirmCloseFileIfUnsavedChanges(ino: Ino) {
+    const hasUnsavedChanges = useFileEditorStore.getState().unsavedInos.has(ino);
+    if (!hasUnsavedChanges) return false;
+    usePgUiToggle.getState().toggle(`close-file-dialog-${ino}`, true);
+    return true;
+}
+
+export function closeAllFilesOrConfirmUnsavedChanges() {
+    if (confirmCloseAllFilesIfUnsavedChanges()) return true;
+    useFileSystem.getState().closeAllFiles();
+    return false;
+}
+
+export function closeFileOrConfirmUnsavedChanges(path: string, ino: Ino) {
+    if (confirmCloseFileIfUnsavedChanges(ino)) return true;
+    useFileSystem.getState().closeFile(path);
+    return false;
 }
 
 export const createFileWithContent = async (path: string, content: string) => {

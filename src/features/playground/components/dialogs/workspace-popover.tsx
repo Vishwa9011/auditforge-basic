@@ -8,6 +8,7 @@ import { useFileSystem } from '@features/playground/store';
 import { getWorkspaceNames } from '@features/playground/store/file-system';
 
 import { CreateWorkspaceDialog } from './create-workspace-dialog';
+import { closeAllFilesOrConfirmUnsavedChanges } from '../../lib';
 
 export function WorkspacePopover() {
     const [popoverOpen, setPopoverOpen] = useToggle(false);
@@ -18,6 +19,7 @@ export function WorkspacePopover() {
     const workspaceNames = getWorkspaceNames(fsTree);
 
     const handleSelectWorkspace = (workspaceName: string) => {
+        if (closeAllFilesOrConfirmUnsavedChanges()) return;
         selectWorkspace(workspaceName);
         setPopoverOpen(false);
     };
