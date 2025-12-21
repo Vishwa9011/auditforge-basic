@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { usePlatform } from '@/hooks/use-platform';
 import { matchesShortcut } from '@/lib/shortcut-matcher';
 import { APP_SHORTCUTS, type AppShortcutId } from '@/lib/app-shortcuts';
-import { usePlatform } from '@/hooks/use-platform';
 
 export type ShortcutActions = Partial<Record<AppShortcutId, () => void>>;
 

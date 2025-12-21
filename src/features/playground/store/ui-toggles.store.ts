@@ -2,12 +2,13 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-export const UI_TOGGLE_KEYS = ['file-explorer-panel', 'analyzer-panel'] as const;
+export const UI_TOGGLE_KEYS = ['file-explorer-panel', 'analyzer-panel', 'close-all-files-dialog'] as const;
 export type UiToggleKey = (typeof UI_TOGGLE_KEYS)[number] | (string & {});
 
 export const DEFAULT_TOGGLE_STATE: Record<UiToggleKey, boolean> = {
     'file-explorer-panel': true,
     'analyzer-panel': false,
+    'close-all-files-dialog': false,
 };
 
 type PlaygroundUiToggleStore = {

@@ -39,11 +39,13 @@ export const useFileEditorStore = create<FileEditorStoreState>()(
         clearUnsaved: (ino: Ino) => {
             set(state => {
                 state.unsavedInos.delete(ino);
+                state.draftsByIno.delete(ino);
             });
         },
         clearAllUnsaved: () => {
             set(state => {
                 state.unsavedInos.clear();
+                state.draftsByIno.clear();
             });
         },
         upsertDraftContent: (ino: Ino, content: string, path: string) => {

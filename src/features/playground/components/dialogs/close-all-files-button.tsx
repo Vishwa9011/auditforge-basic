@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
@@ -8,11 +10,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useUiToggle } from '@features/playground/hooks';
 import { saveAllUnsavedFiles } from '@features/playground/lib';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { TriangleAlert } from 'lucide-react';
-import { useState } from 'react';
-import { useToggle, useUiToggle } from '@features/playground/hooks';
 
 function getCloseAllTabsTriggerTitle({
     title,
@@ -33,21 +33,13 @@ function getCloseAllTabsTriggerTitle({
 
 type CloseAllFilesButtonProps = {
     title?: string;
-    isOpen?: boolean;
-    onOpenChange?: (open: boolean) => void;
     isTriggerButton?: boolean;
     action?: () => void;
 };
 
-export function CloseAllFilesButton({
-    isOpen,
-    onOpenChange,
-    title,
-    isTriggerButton = true,
-    action,
-}: CloseAllFilesButtonProps) {
+export function CloseAllFilesButton({ title, isTriggerButton = true, action }: CloseAllFilesButtonProps) {
+    const closeAllFilesDialog = useUiToggle('close-all-files-dialog', false);
     const analyzerPanel = useUiToggle('analyzer-panel');
-    const [uncontrolledOpen, setUncontrolledOpen] = useToggle(false);
     const [isWorking, setIsWorking] = useState(false);
 
     const openFilesCount = useFileSystem(state => state.openFiles.size);
@@ -60,14 +52,8 @@ export function CloseAllFilesButton({
     const hasUnsavedChanges = unsavedCount > 0;
     const isDisabled = !hasOpenFiles || isWorking;
 
-    const isControlled = typeof isOpen === 'boolean';
-    const dialogOpen = isControlled ? isOpen : uncontrolledOpen;
-
     const setDialogOpen = (nextOpen: boolean) => {
-        onOpenChange?.(nextOpen);
-        if (!isControlled) {
-            setUncontrolledOpen(nextOpen);
-        }
+        closeAllFilesDialog.toggle(nextOpen);
     };
 
     const triggerTitle = getCloseAllTabsTriggerTitle({ title, hasOpenFiles, unsavedCount });
@@ -127,7 +113,7 @@ export function CloseAllFilesButton({
                 </Button>
             )}
 
-            <AlertDialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+            <AlertDialog open={closeAllFilesDialog.isEnabled} onOpenChange={handleDialogOpenChange}>
                 <AlertDialogContent className="rounded-xl p-6 sm:max-w-sm">
                     <div className="flex flex-col items-center text-center">
                         <div className="bg-muted text-foreground mb-4 flex size-12 items-center justify-center rounded-xl">

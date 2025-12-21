@@ -1,25 +1,6 @@
 export const MODIFIER_KEYS = ['Ctrl', 'Shift', 'Alt'] as const;
 
-export const SHORTCUT_COMBINATION_KEYS = [
-    ...MODIFIER_KEYS,
-    'Enter',
-    'P',
-    'N',
-    'B',
-    'O',
-    'F',
-    'S',
-    'Z',
-    'Y',
-    'X',
-    'C',
-    'V',
-    'A',
-    'W',
-    'Q',
-    'D',
-    ',',
-] as const;
+export const SHORTCUT_COMBINATION_KEYS = [...MODIFIER_KEYS, 'Enter', 'O', 'E', 'S', 'X', 'D', ','] as const;
 
 export type ShortcutKey = (typeof SHORTCUT_COMBINATION_KEYS)[number];
 export type ModifierKey = (typeof MODIFIER_KEYS)[number];
@@ -51,42 +32,49 @@ export type AppShortcut = {
 export const APP_SHORTCUTS_BY_ID = {
     [APP_SHORTCUT_IDS.OPEN_FILE]: {
         label: 'Open file',
-        keys: ['Ctrl', 'P'],
+        keys: ['Ctrl', 'O'], // standard, safe
     },
+
     [APP_SHORTCUT_IDS.NEW_FILE]: {
         label: 'Create new file',
-        keys: ['Ctrl', 'N'],
+        keys: ['Ctrl', 'Shift', 'O'], // avoids Ctrl+N / Incognito
     },
+
     [APP_SHORTCUT_IDS.OPEN_FILE_EXPLORER]: {
-        label: 'Open file explorer',
-        keys: ['Ctrl', 'B'],
+        label: 'Toggle file explorer',
+        keys: ['Ctrl', 'Shift', 'E'], // E = Explorer
     },
+
     [APP_SHORTCUT_IDS.OPEN_AI_ANALYSIS]: {
-        label: 'Open analyzer panel',
-        keys: ['Ctrl', 'Enter'],
+        label: 'Run AI analysis',
+        keys: ['Ctrl', 'Shift', 'Enter'], // intentional execution
     },
+
     [APP_SHORTCUT_IDS.OPEN_SETTINGS]: {
         label: 'Open settings',
-        keys: ['Ctrl', ','],
+        keys: ['Ctrl', ','], // universal & safe
     },
-    [APP_SHORTCUT_IDS.CLOSE_FILE]: {
-        label: 'Close file',
-        keys: ['Ctrl', 'D'],
-    },
-    [APP_SHORTCUT_IDS.CLOSE_ALL_FILES]: {
-        label: 'Close All files',
-        keys: ['Ctrl', 'Shift', 'D'],
-    },
+
     [APP_SHORTCUT_IDS.SAVE_FILE]: {
         label: 'Save file',
-        keys: ['Ctrl', 'S'],
+        keys: ['Ctrl', 'S'], // expected
     },
+
     [APP_SHORTCUT_IDS.SAVE_ALL_FILES]: {
-        label: 'Save All file',
-        keys: ['Ctrl', 'Shift', 'S'],
+        label: 'Save all files',
+        keys: ['Ctrl', 'Shift', 'S'], // expected
+    },
+
+    [APP_SHORTCUT_IDS.CLOSE_FILE]: {
+        label: 'Close active file',
+        keys: ['Ctrl', 'Shift', 'X'], // K = close / kill, browser-safe
+    },
+
+    [APP_SHORTCUT_IDS.CLOSE_ALL_FILES]: {
+        label: 'Close all files',
+        keys: ['Ctrl', 'Shift', 'D'], // strong + intentional
     },
 } as const satisfies Record<AppShortcutId, AppShortcutDefinition>;
-
 export const APP_SHORTCUTS: readonly AppShortcut[] = (
     Object.entries(APP_SHORTCUTS_BY_ID) as Array<[AppShortcutId, AppShortcutDefinition]>
 ).map(([id, shortcut]) => ({

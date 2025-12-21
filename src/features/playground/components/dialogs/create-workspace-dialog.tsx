@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { createFileWithContent } from '../../lib';
-import { useToggle } from '@features/playground/hooks';
+import { useToggle, useUiToggle } from '@features/playground/hooks';
 import { WELCOME_FILE_CONTENT } from '../../store/file-system';
 import { CloseAllFilesButton } from './close-all-files-button';
 import { type FormEvent, type MouseEvent, useState } from 'react';
@@ -27,8 +27,8 @@ type CreateWorkspaceDialogProps = {
 };
 
 export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDialogProps) {
+    const closeAllFilesDialog = useUiToggle('close-all-files-dialog');
     const [createDialogOpen, setCreateDialogOpen] = useToggle(false);
-    const [closeAllFilesDialogOpen, setCloseAllFilesDialogOpen] = useToggle(false);
     const [workspaceNameInput, setWorkspaceNameInput] = useState('');
 
     const createDir = useFileSystem(state => state.createDir);
@@ -41,7 +41,7 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
     const ensureNoUnsavedChanges = () => {
         if (unsavedCount === 0) return true;
 
-        setCloseAllFilesDialogOpen(true);
+        closeAllFilesDialog.toggle(true);
         return false;
     };
 
@@ -93,9 +93,7 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
         <>
             <CloseAllFilesButton
                 title="Close all files?"
-                isOpen={closeAllFilesDialogOpen}
                 isTriggerButton={false}
-                onOpenChange={setCloseAllFilesDialogOpen}
                 action={handleCloseAllFilesComplete}
             />
 

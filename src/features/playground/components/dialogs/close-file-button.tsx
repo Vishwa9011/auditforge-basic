@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { InodeMeta } from '@features/playground/types';
 import { useFileEditorStore, useFileSystem } from '@features/playground/store';
-import { useToggle } from '@features/playground/hooks';
+import { useUiToggle } from '@features/playground/hooks';
 import { TriangleAlert, X } from 'lucide-react';
 import { saveFileByIno } from '@features/playground/lib';
 import { useMemo, useState, type MouseEvent } from 'react';
@@ -19,7 +19,7 @@ import { resolveFilename } from '@features/playground/store/file-system';
 type CloseFileButtonProps = InodeMeta & { path: string; name?: string; content?: string };
 
 export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
-    const [isAlertOpen, setIsAlertOpen] = useToggle(false);
+    const { isEnabled: isAlertOpen, toggle: setIsAlertOpen } = useUiToggle(`close-file-dialog-${ino}`, false);
     const [isSaving, setIsSaving] = useState(false);
     const closeFile = useFileSystem(state => state.closeFile);
     const hasUnsavedChanges = useFileEditorStore(state => state.unsavedInos.has(ino));
@@ -64,7 +64,7 @@ export function CloseFileButton({ ino, path, name }: CloseFileButtonProps) {
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="hover:!bg-accent/80 relative size-6 rounded-sm p-0 opacity-60 transition-opacity group-hover:opacity-100"
+                className="hover:bg-accent/80! relative size-6 rounded-sm p-0 opacity-60 transition-opacity group-hover:opacity-100"
                 title={hasUnsavedChanges ? 'Close (unsaved changes)' : 'Close'}
                 aria-label={hasUnsavedChanges ? 'Close file (unsaved changes)' : 'Close file'}
                 onPointerDown={event => event.stopPropagation()}
