@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { ToggleRow } from './toggle-row';
+import { useState } from 'react';
 
 export function AnalyzerSettingsSection() {
     const {
@@ -29,6 +31,7 @@ export function AnalyzerSettingsSection() {
     } = useAnalyzerSettings();
 
     const model = modelByProvider[provider] ?? '';
+    const [showApiKey, setShowApiKey] = useState(false);
 
     return (
         <div className="space-y-4">
@@ -92,12 +95,18 @@ export function AnalyzerSettingsSection() {
                         <div className="space-y-2">
                             <Label>OpenAI API key</Label>
                             <Input
-                                type="password"
+                                type={showApiKey ? 'text' : 'password'}
                                 placeholder="sk-..."
                                 value={openaiApiKey}
                                 onChange={e => setOpenaiApiKey(e.target.value)}
+                                autoComplete="off"
                             />
-                            <p className="text-muted-foreground text-xs">Stored locally in your browser.</p>
+                            <ToggleRow
+                                label="Show API key"
+                                description="Stored locally in your browser."
+                                checked={showApiKey}
+                                onCheckedChange={setShowApiKey}
+                            />
                         </div>
 
                         <div className="space-y-2">

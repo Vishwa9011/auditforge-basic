@@ -6,14 +6,16 @@ import { ImportSettingsSection } from './import-settings';
 import { EditorSettingsSection } from './editor-settings';
 import { ShortcutsSettingsSection } from './shortcut-settings';
 import { AnalyzerSettingsSection } from './analyzer-settings';
+import { PreferencesSettingsSection } from './preferences-settings';
 import { Cog, Download, ExternalLink, Upload } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export type SettingsTab = 'editor' | 'analyzer' | 'import' | 'shortcuts';
+export type SettingsTab = 'preferences' | 'editor' | 'analyzer' | 'import' | 'shortcuts';
 
 export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsTab }) {
     const normalizedTab = useMemo(() => {
+        if (initialTab === 'preferences') return 'preferences';
         if (initialTab === 'analyzer') return 'analyzer';
         if (initialTab === 'import') return 'import';
         if (initialTab === 'shortcuts') return 'shortcuts';
@@ -33,7 +35,8 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                     <Tabs value={tab} onValueChange={v => setTab(v as SettingsTab)} className="w-full">
                         <div className="flex flex-col gap-4 md:flex-row">
                             <div className="md:w-56">
-                                <TabsList className="grid w-full grid-cols-4 md:hidden">
+                                <TabsList className="grid w-full grid-cols-2 gap-1 min-[520px]:grid-cols-5 md:hidden">
+                                    <TabsTrigger value="preferences">Preferences</TabsTrigger>
                                     <TabsTrigger value="editor">Editor</TabsTrigger>
                                     <TabsTrigger value="analyzer">Analyzer</TabsTrigger>
                                     <TabsTrigger value="import">Import</TabsTrigger>
@@ -45,6 +48,11 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                                         Settings
                                     </div>
                                     <div className="space-y-1">
+                                        <SidebarTabButton
+                                            active={tab === 'preferences'}
+                                            onClick={() => setTab('preferences')}
+                                            label="Preferences"
+                                        />
                                         <SidebarTabButton
                                             active={tab === 'editor'}
                                             onClick={() => setTab('editor')}
@@ -70,6 +78,9 @@ export function SettingsPage({ initialTab = 'editor' }: { initialTab?: SettingsT
                             </div>
 
                             <div className="min-w-0 flex-1">
+                                <TabsContent value="preferences" className="mt-0">
+                                    <PreferencesSettingsSection />
+                                </TabsContent>
                                 <TabsContent value="editor" className="mt-0">
                                     <EditorSettingsSection />
                                 </TabsContent>
@@ -116,7 +127,7 @@ function SettingsTopBar() {
                     </span>
                     <div className="leading-tight">
                         <div className="text-sm font-semibold">Settings</div>
-                        <div className="text-muted-foreground text-xs">Configure editor and analyzer behavior</div>
+                        <div className="text-muted-foreground text-xs">Configure preferences and app defaults</div>
                     </div>
                 </div>
 

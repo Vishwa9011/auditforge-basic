@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFileEditorStore } from '@features/playground/store';
 import { useDebouncedCallback } from 'use-debounce';
 import type { editor } from 'monaco-editor';
-import { configureMonaco, DEFAULT_EDITOR_OPTIONS, getEditorLanguage } from '../editor-config';
+import { configureMonaco, DEFAULT_EDITOR_OPTIONS, getEditorLanguage, getFontFamilyCssVar } from '../editor-config';
 import { useEditorSettings } from '@features/settings/store/editor-settings.store';
 
 type CodeEditorProps = {
@@ -56,10 +56,7 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
     const effectiveEditorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(
         () => ({
             ...DEFAULT_EDITOR_OPTIONS,
-            fontFamily:
-                fontFamily === 'System Mono'
-                    ? "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-                    : `'${fontFamily}', monospace`,
+            fontFamily: getFontFamilyCssVar(fontFamily),
             fontSize,
             lineHeight,
             fontLigatures,
@@ -131,7 +128,7 @@ export function CodeEditor({ path, content, meta, extension }: CodeEditorProps) 
     }, [content, meta, draftContent, path]);
 
     return (
-        <div className="border-border h-full w-full border-2 ">
+        <div className="border-border h-full w-full border-2" style={{ fontFamily: getFontFamilyCssVar(fontFamily) }}>
             <Editor
                 height="100%"
                 theme="vs-dark"

@@ -4,7 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useEditorSettings, type EditorFontFamily } from '../store/editor-settings.store';
+import { FONT_FAMILIES, type EditorFontFamilyId } from '@/features/playground/editor';
+import { useEditorSettings } from '../store/editor-settings.store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -38,18 +39,14 @@ export function EditorSettingsSection() {
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label>Font family</Label>
-                            <Select value={fontFamily} onValueChange={v => setFontFamily(v as EditorFontFamily)}>
+                            <Select value={fontFamily} onValueChange={v => setFontFamily(v as EditorFontFamilyId)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select font" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="JetBrains Mono">JetBrains Mono</SelectItem>
-                                    <SelectItem value="Fira Code">Fira Code</SelectItem>
-                                    <SelectItem value="Source Code Pro">Source Code Pro</SelectItem>
-                                    <SelectItem value="Menlo">Menlo</SelectItem>
-                                    <SelectItem value="Monaco">Monaco</SelectItem>
-                                    <SelectItem value="Consolas">Consolas</SelectItem>
-                                    <SelectItem value="System Mono">System Mono</SelectItem>
+                                    {FONT_FAMILIES.map(({ id, label }) => (
+                                        <SelectItem value={id}>{label}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <p className="text-muted-foreground text-xs">Applied immediately to Monaco editor.</p>

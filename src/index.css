@@ -40,7 +40,9 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
     --font-geist: 'Geist', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-jetbrains-mono: 'JetBrains Mono', monospace;
+    --font-fira-code: 'Fira Code', monospace;
+    --font-source-code-pro: 'Source Code Pro', monospace;
 }
 
 :root {

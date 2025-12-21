@@ -214,3 +214,46 @@ export const DEFAULT_EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions
         enabled: true,
     },
 };
+
+export const EDITOR_FONT_FAMILY_IDS = {
+    JETBRAINS_MONO: 'jetbrains-mono',
+    FIRA_CODE: 'fira-code',
+    SOURCE_CODE_PRO: 'source-code-pro',
+} as const;
+
+export type EditorFontFamilyId = (typeof EDITOR_FONT_FAMILY_IDS)[keyof typeof EDITOR_FONT_FAMILY_IDS];
+type EditorFontFamilyDefinition = {
+    label: string;
+    cssVar: string;
+};
+type FontFamily = {
+    id: EditorFontFamilyId;
+} & EditorFontFamilyDefinition;
+
+export const EDITOR_FONT_FAMILY_BY_ID = {
+    [EDITOR_FONT_FAMILY_IDS.JETBRAINS_MONO]: {
+        label: 'JetBrains Mono',
+        cssVar: 'var(--font-jetbrains-mono)',
+    },
+    [EDITOR_FONT_FAMILY_IDS.FIRA_CODE]: {
+        label: 'Fira Code',
+        cssVar: 'var(--font-fira-code)',
+    },
+    [EDITOR_FONT_FAMILY_IDS.SOURCE_CODE_PRO]: {
+        label: 'Source Code Pro',
+        cssVar: 'var(--font-source-code-pro)',
+    },
+} as const satisfies Record<EditorFontFamilyId, EditorFontFamilyDefinition>;
+
+export const FONT_FAMILIES = Object.entries(EDITOR_FONT_FAMILY_BY_ID).map(([id, definition]) => ({
+    id,
+    ...definition,
+})) as FontFamily[];
+
+export const getFontFamilyCssVar = (fontId: EditorFontFamilyId) => {
+    return EDITOR_FONT_FAMILY_BY_ID[fontId].cssVar;
+};
+
+export const getEditorFontFamily = (id?: EditorFontFamilyId) => {
+    return FONT_FAMILIES.find(font => font.id === id) ?? FONT_FAMILIES[0];
+};

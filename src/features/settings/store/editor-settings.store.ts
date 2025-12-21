@@ -1,18 +1,10 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-export type EditorFontFamily =
-    | 'JetBrains Mono'
-    | 'Fira Code'
-    | 'Source Code Pro'
-    | 'Menlo'
-    | 'Monaco'
-    | 'Consolas'
-    | 'System Mono';
+import { getEditorFontFamily, type EditorFontFamilyId } from '@/features/playground/editor';
 
 type EditorSettingsState = {
-    fontFamily: EditorFontFamily;
+    fontFamily: EditorFontFamilyId;
     fontSize: number;
     lineHeight: number;
     fontLigatures: boolean;
@@ -20,7 +12,7 @@ type EditorSettingsState = {
     wordWrap: boolean;
     minimap: boolean;
 
-    setFontFamily: (fontFamily: EditorFontFamily) => void;
+    setFontFamily: (fontFamily: EditorFontFamilyId) => void;
     setFontSize: (fontSize: number) => void;
     setLineHeight: (lineHeight: number) => void;
     setFontLigatures: (enabled: boolean) => void;
@@ -34,7 +26,7 @@ const DEFAULTS: Pick<
     EditorSettingsState,
     'fontFamily' | 'fontSize' | 'lineHeight' | 'fontLigatures' | 'lineNumbers' | 'wordWrap' | 'minimap'
 > = {
-    fontFamily: 'JetBrains Mono',
+    fontFamily: getEditorFontFamily().id,
     fontSize: 14,
     lineHeight: 20,
     fontLigatures: true,
