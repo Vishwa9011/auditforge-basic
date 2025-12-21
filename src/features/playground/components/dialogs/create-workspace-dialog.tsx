@@ -66,7 +66,7 @@ export function CreateWorkspaceDialog({ onWorkspaceCreated }: CreateWorkspaceDia
         createDir(WORKSPACES_ROOT, workspaceName);
 
         const workspaceDirPath = `${WORKSPACES_ROOT}/${workspaceName}`;
-        const welcomeFilePath = `${workspaceDirPath}/welcome.md`;
+        const welcomeFilePath = `${workspaceDirPath}/welcome.txt`;
         const didCreateWelcomeFile = await createFileWithContent(welcomeFilePath, WELCOME_FILE_CONTENT);
         if (!didCreateWelcomeFile) {
             toast.error('Failed to create welcome file');

@@ -30,7 +30,6 @@ export function useShortcutActions(actionsById: ShortcutActions, enabled = true)
             if (event.repeat) return;
 
             for (const shortcut of shortcuts) {
-                console.log('event: ', event.key);
                 const action = actionsByIdRef.current[shortcut.id];
                 if (!action) continue;
                 if (!matchesShortcut(shortcut.keys, event, { allowMetaAsCtrl })) continue;

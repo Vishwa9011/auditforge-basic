@@ -23,7 +23,7 @@ export function useInitializeDefaultWorkspace() {
         if (initStartedRef.current) return; // Prevent double initialization
         initStartedRef.current = true;
 
-        const welcomePath = `${DEFAULT_CWD}/welcome.md`;
+        const welcomePath = `${DEFAULT_CWD}/welcome.txt`;
 
         (async () => {
             try {
