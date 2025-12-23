@@ -34,8 +34,8 @@ export function AnalyzerHeader({ onAnalyze, isAnalyzing }: AnalyzerHeaderProps) 
     const analyzeIcon = isAnalyzing ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />;
 
     return (
-        <div className="border-b px-2 py-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center border-b px-2 md:h-10">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between ">
                 <HeaderTitle />
 
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
@@ -88,7 +88,13 @@ export function AnalyzerHeader({ onAnalyze, isAnalyzing }: AnalyzerHeaderProps) 
 
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon-sm" asChild aria-label="Open analyzer settings">
+                            <Button
+                                variant="outline"
+                                className=""
+                                size="icon-sm"
+                                asChild
+                                aria-label="Open analyzer settings"
+                            >
                                 <Link to="/settings" search={{ tab: 'analyzer' as const }}>
                                     <Settings2 className="size-4" />
                                 </Link>
@@ -149,7 +155,7 @@ function HeaderPopover({
                             aria-label={ariaLabel}
                             disabled={disabled}
                             className={cn(
-                                'text-muted-foreground hover:text-foreground hover:bg-accent bg-background inline-flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 text-sm shadow-xs transition-colors',
+                                'text-muted-foreground hover:text-foreground hover:bg-accent bg-background inline-flex h-7 min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2 text-sm shadow-xs transition-colors',
                                 'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
                                 'disabled:pointer-events-none disabled:opacity-50',
                             )}
