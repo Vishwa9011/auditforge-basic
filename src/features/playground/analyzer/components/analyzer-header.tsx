@@ -20,7 +20,7 @@ type HeaderPopoverContextValue = {
 const HeaderPopoverContext = createContext<HeaderPopoverContextValue | null>(null);
 
 const PROVIDER_OPTIONS = [
-    { id: 'ollama', label: 'Ollama' },
+    // { id: 'ollama', label: 'Ollama' }, // only for local use
     { id: 'openai', label: 'OpenAI' },
 ] as const;
 

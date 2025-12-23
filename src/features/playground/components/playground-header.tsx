@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUiToggle } from '@features/playground/hooks';
 import { Bot, Loader2, Save, SaveAll, Sidebar } from 'lucide-react';
@@ -67,6 +67,12 @@ export function PlaygroundHeader() {
         }
     };
 
+    useEffect(() => {
+        if (!activeFilePath && analyzerPanel.isEnabled) {
+            analyzerPanel.toggle(false);
+        }
+    }, [activeFilePath, analyzerPanel.isEnabled]);
+
     return (
         <header className="bg-background">
             <div className="flex h-10 items-center justify-between border-b px-2">
@@ -116,7 +122,7 @@ export function PlaygroundHeader() {
                                 type="button"
                                 variant="outline"
                                 className={actionButtonClasses}
-                                // disabled={!hasUnsavedChanges || isSaving}
+                                disabled={!hasUnsavedChanges || isSaving}
                                 onClick={handleSaveAllFiles}
                                 aria-label="Save all"
                             >

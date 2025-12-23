@@ -22,7 +22,7 @@ export type ModelSuggestion = {
 export type ModelName<T extends LlmProvider> = (typeof MODEL_SUGGESTIONS)[T][number]['id'];
 
 export const DEFAULT_OLLAMA_HOST = 'http://localhost:11434';
-export const DEFAULT_PROVIDER: LlmProvider = 'ollama';
+export const DEFAULT_PROVIDER: LlmProvider = 'openai';
 
 export const MODEL_SUGGESTIONS = {
     ollama: [
